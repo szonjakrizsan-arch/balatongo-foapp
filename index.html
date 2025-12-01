@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>BalatonGo</title>
+
+  <!-- Stílusok -->
+  <link rel="stylesheet" href="style.css"/>
+
+  <!-- PapaParse (menetrend) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+
+  <!-- Leaflet (túra térkép) -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+</head>
+<body>
+  <main id="app">
+    <!-- ================ HOME ================ -->
+    <section class="view active" data-route="home">
+      <div class="home-wrap">
+        <div class="bg-photo" aria-hidden="true"></div>
+        <div class="dark-overlay" aria-hidden="true"></div>
+        <div class="cloud-layer" aria-hidden="true">
+          <div class="cloud c1"></div>
+          <div class="cloud c2"></div>
+          <div class="cloud c3"></div>
+        </div>
+
+        <div class="ui">
+          <div class="card" role="main" aria-label="BalatonGo kezdőképernyő">
+            <h2 class="home-title">BalatonGo</h2>
+            <div class="tagline">Fedezd fel a Balaton rejtett szépségeit</div>
+
+            <div class="btn-column">
+              <button class="action-button act-weather" onclick="router.navigate('weather')">🌅 Időjárás</button>
+              <button class="action-button act-ferry"   onclick="router.navigate('schedule')">🚢 Hajómenetrend</button>
+              <button class="action-button act-hike"    onclick="router.navigate('tours')">🚴 Túraútvonalak</button>
+            </div>
+          </div>
+        </div>
+
+        <footer class="main-footer">© 2025 BalatonGo</footer>
+      </div>
+    </section>
+
+    <!-- ================ MENETREND ================ -->
+    <section class="view" data-route="schedule">
+      <div class="schedule-wrap">
+        <div class="app-bg" aria-hidden="true"></div>
+
+        <div class="card">
+          <h1>Menetrend kereső</h1>
+
+          <label for="fromPort"><b>Honnan:</b></label>
+          <select id="fromPort"></select>
+
+          <label for="toPort"><b>Hová:</b></label>
+          <select id="toPort"></select>
+
+          <label for="datePick"><b>Dátum:</b></label>
+          <input type="date" id="datePick"/>
+
+          <div class="quick-dates">
+            <button type="button" class="tag" onclick="setDateQuick('today')">Ma</button>
+            <button type="button" class="tag" onclick="setDateQuick('tomorrow')">Holnap</button>
+          </div>
+
+          <button class="btn" id="searchBtn" onclick="searchTrips()">🔎 Keresés</button>
+
+          <p class="hint">ℹ️ Sétahajó esetén a kiindulási pont és az érkezési pont ugyanaz.</p>
+
+          <div id="results"></div>
+
+          <div class="bottom-bar glass">
+            <button class="back-btn" type="button" onclick="router.back()">← Vissza</button>
+          </div>
+
+          <p class="footer">Az adatok a <b>Bahart Zrt.</b> hivatalos szolgáltatásából származnak.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================ IDŐJÁRÁS ================ -->
+    <section class="view" data-route="weather">
+      <div class="card card-wide">
+        <h2>Időjárás kereső</h2>
+
+        <div class="form-row">
+          <input
+            type="text"
+            id="cityInput"
+            class="input-lg"
+            placeholder="Merre kirándulunk ma?"
+            autocomplete="off"
+            inputmode="search"
+            onkeydown="if(event.key==='Enter'){getWeather();}"
+          />
+          <button id="goBtn" class="btn btn-orange" onclick="getWeather()">Induljunk! 🚲</button>
+        </div>
+
+        <div id="result" class="panel">
+          <p class="placeholder">Írd be a város nevét!</p>
+        </div>
+
+        <div class="bottom-bar glass">
+          <button class="back-btn" type="button" onclick="router.back()">← Vissza</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================ TÚRAÚTVONALAK ================ -->
+    <section class="view" data-route="tours" data-view="view-home">
+      <div class="tours-shell app-shell">
+        <header class="hero">
+          <h1 id="page-title">Túraútvonalak</h1>
+          <p id="page-subtitle" class="subtitle"></p>
+        </header>
+
+        <main class="scroll-area">
+          <!-- HOME -->
+          <section class="tview view active" id="view-home" aria-labelledby="home-title">
+            <div class="view-inner home">
+              <h2 id="home-title" class="sr-only">Kezdőlap</h2>
+              <p class="lead">Válaszd ki, hogyan indulnál neki:</p>
+              <div class="home-grid">
+                <button class="home-card" data-nav-to="view-search">
+                  <div class="icon">🔎</div>
+                  <h3>Keresés</h3>
+                  <p>Írj be települést vagy útvonalat</p>
+                </button>
+                <button class="home-card" data-nav-to="view-map">
+                  <div class="icon">🗺️</div>
+                  <h3>Térképen</h3>
+                  <p>Nézd meg a pontokat térképen</p>
+                </button>
+                <button class="home-card" data-nav-to="view-nearby">
+                  <div class="icon">📍</div>
+                  <h3>A közelben</h3>
+                  <p>Mutasd a közeli helyeket</p>
+                </button>
+              </div>
+            </div>
+          </section>
+
+          <!-- KERESÉS -->
+          <section class="tview view" id="view-search" aria-labelledby="search-title">
+            <div class="view-inner">
+              <h2 id="search-title" class="sr-only">Keresés</h2>
+              <input id="search-input" class="search-input" placeholder="Írj be települést vagy útvonalnevet…" autocomplete="off" inputmode="search" aria-label="Keresés">
+              <p class="hint">Tipp: „Zamárdi”, „Szent György-hegy” – azonnal szűr 🤸‍♀️</p>
+            </div>
+          </section>
+
+          <!-- RÉSZLET -->
+          <section class="tview view" id="view-detail" aria-labelledby="detail-title">
+            <div class="view-inner">
+              <article id="detail-card" class="detail-card" aria-live="polite"></article>
+            </div>
+          </section>
+
+          <!-- TÉRKÉP -->
+          <section class="tview view" id="view-map" aria-labelledby="map-title">
+            <div class="view-inner">
+              <h2 id="map-title" class="sr-only">Térképes nézet</h2>
+              <div class="map-panel">
+                <div class="map-toolbar">
+                  <input id="map-filter" class="map-filter" placeholder="Szűrés a térképen (pl. település, név)…" autocomplete="off" inputmode="search" aria-label="Térképes szűrés">
+                  <span id="map-counter" class="map-counter">—</span>
+                </div>
+                <div id="map" role="region" aria-label="Balaton térkép"></div>
+                <div class="csv-status" id="map-status"></div>
+              </div>
+            </div>
+          </section>
+
+            <!-- KÖZELBEN -->
+      <section class="tview view" id="view-nearby" aria-labelledby="nearby-title">
+        <div class="view-inner">
+          <h2 id="nearby-title" class="sr-only">A közelben</h2>
+
+          <div class="nearby-panel">
+            <div class="nearby-row">
+              <button id="nearby-ask" class="primary-btn">
+                Engedélyezem a helyzetmeghatározást
+              </button>
+              <button id="nearby-refresh" class="ghost-btn" title="Pozíció frissítése">
+                Újbóli helymeghatározás
+              </button>
+              <label class="switch">
+                <input type="checkbox" id="nearby-watch">
+                <span>Élő követés</span>
+              </label>
+            </div>
+
+            <div class="nearby-row">
+              <label for="nearby-radius" class="nearby-label">
+                Sugár:
+                <strong><span id="nearby-radius-val">15</span> km</strong>
+              </label>
+              <input
+                id="nearby-radius"
+                type="range"
+                min="1"
+                max="250"
+                step="1"
+                value="15"
+              />
+              <span id="nearby-counter" class="map-counter">—</span>
+            </div>
+
+            <div id="nearby-status" class="csv-status"></div>
+          </div>
+
+          <ul id="nearby-list" class="tura-list" aria-live="polite"></ul>
+        </div>
+      </section>
+    </main>
+
+    <footer class="bottom-bar glass" role="contentinfo">
+      <button class="back-btn" type="button" data-nav-back aria-label="Vissza">
+        ← Vissza
+      </button>
+    </footer>
+  </div>
+</section>
+</main>
+
+<script src="script.js"></script>
+</body>
+</html>
