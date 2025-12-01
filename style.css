@@ -1,0 +1,715 @@
+/* ===== Globál ===== */
+
+:root{
+
+  --bg-url: url('https://i.imgur.com/GEkwVNS.jpg');
+
+}
+
+*{box-sizing:border-box}
+
+html, body { height: 100%; }
+
+body{
+
+  min-height: 100dvh;
+
+  margin: 0;
+
+  font-family: "Segoe UI", system-ui, Arial, sans-serif;
+
+  color: #fff;
+
+  background: var(--bg-url) no-repeat center center / cover fixed;
+
+  transition: background .4s ease-in-out;
+
+}
+
+#app{ padding: 0; }
+
+/* Nézetek */
+
+.view{ display:none; }
+
+.view.active{ display:block; }
+
+/* Kártya (globális) */
+
+.card{
+
+  background: rgba(0,0,0,.45);
+
+  padding: 1.4rem;
+
+  border-radius: 14px;
+
+  box-shadow: 0 8px 28px rgba(0,0,0,.4);
+
+  backdrop-filter: blur(6px);
+
+  max-width: 900px;
+
+  margin: 16px auto;
+
+}
+
+.card-wide{max-width: 1000px}
+
+/* Üveges alsó sáv + vissza gomb */
+
+.bottom-bar.glass{
+
+  position: sticky;
+
+  bottom: 0;
+
+  margin-top: 14px;
+
+  display: flex;
+
+  justify-content: center;
+
+  padding: 12px 16px calc(12px + env(safe-area-inset-bottom));
+
+  background: linear-gradient(to top, rgba(0,0,0,.50), rgba(0,0,0,0));
+
+  backdrop-filter: blur(6px);
+
+  z-index: 30;
+
+}
+
+.back-btn{
+
+  padding:14px 22px; border-radius:999px; font-weight:800; font-size:16px;
+
+  background:#111318; color:#fff; border:1px solid rgba(255,255,255,.08);
+
+  box-shadow:0 14px 34px rgba(0,0,0,.35);
+
+}
+
+/* Panel/forecast */
+
+.panel{ background: rgba(0,0,0,.5); border-radius: 10px; padding: 1rem; margin-top: .8rem; }
+
+.placeholder{ color: rgba(255,255,255,.85); font-style: italic; }
+
+.forecast-item{ border-bottom: 1px solid rgba(255,255,255,.2); padding: .55rem 0; font-size: 1.08rem; }
+
+.temp-cold{ color:#4fc3f7; font-weight:700; }
+
+.temp-mild{ color:#81c784; font-weight:700; }
+
+.temp-warm{ color:#ffb74d; font-weight:700; }
+
+.temp-hot { color:#e57373; font-weight:700; }
+
+/* ================= HOME ================= */
+
+.view[data-route="home"] .home-wrap{
+
+  position: relative;
+
+  height: 100dvh;
+
+  overflow: hidden;
+
+}
+
+.view[data-route="home"] .bg-photo{
+
+  position: absolute; inset: 0; z-index: 0;
+
+  background: url('https://i.imgur.com/yXy6uJ7_d.jpeg?maxwidth=520&shape=thumb&fidelity=high')
+
+              no-repeat center center / cover;
+
+}
+
+.view[data-route="home"] .dark-overlay{
+
+  position: absolute; inset: 0; z-index: 1;
+
+  background: linear-gradient(180deg, rgba(6,18,30,0.16), rgba(6,18,30,0.08));
+
+  pointer-events: none;
+
+}
+
+.view[data-route="home"] .cloud-layer{ position: absolute; inset: 0; z-index: 2; overflow: hidden; pointer-events:none;}
+
+.view[data-route="home"] .cloud{
+
+  position: absolute;
+
+  background: url('https://png.pngtree.com/png-vector/20220527/ourlarge/pngtree-white-clouds-png-image_4718242.png') no-repeat center;
+
+  background-size: cover;
+
+  opacity: .92;
+
+  filter: blur(1.2px) saturate(1.03) contrast(.98);
+
+  border-radius: 999px;
+
+  -webkit-mask-image: radial-gradient(circle at 50% 50%, rgba(0,0,0,1) 60%, rgba(0,0,0,0) 100%);
+
+          mask-image: radial-gradient(circle at 50% 50%, rgba(0,0,0,1) 60%, rgba(0,0,0,0) 100%);
+
+  will-change: transform, opacity;
+
+}
+
+.view[data-route="home"] .cloud.c1{ width: 520px; height: 280px; bottom: 66%; left: -600px; animation: cloudMove 88s linear infinite; }
+
+.view[data-route="home"] .cloud.c2{ width: 760px; height: 380px; bottom: 72%; left: -900px; animation: cloudMove 120s linear infinite; }
+
+.view[data-route="home"] .cloud.c3{ width: 420px; height: 240px; bottom: 55%; left: -500px; animation: cloudMove 70s linear infinite; }
+
+@keyframes cloudMove { from{ transform: translateX(0); } to{ transform: translateX(2200px); } }
+
+.view[data-route="home"] .ui{
+
+  position: relative; z-index: 3; display: flex; align-items: center; justify-content: center; height: 100%;
+
+  padding: 20px 16px;
+
+}
+
+.view[data-route="home"] .home-title{ margin: 0 0 .3rem 0; font-size: 2.2rem; text-align:center;}
+
+.view[data-route="home"] .tagline{ margin: .5rem 0 1.6rem 0; font-size: 1rem; opacity: .9; text-align:center;}
+
+.view[data-route="home"] .btn-column{ display: flex; flex-direction: column; gap: 1rem; }
+
+.view[data-route="home"] .action-button{
+
+  border: none; padding: 1rem 2rem; border-radius: 12px;
+
+  font-size: 1.1rem; cursor: pointer; font-weight: bold;
+
+  transition: transform .2s ease, box-shadow .2s ease;
+
+}
+
+.view[data-route="home"] .action-button:hover{ transform: translateY(-3px); }
+
+.view[data-route="home"] .act-weather{
+
+  background: linear-gradient(135deg, #ff9800 0%, #ffb74d 100%); color: #fff; box-shadow: 0 8px 18px rgba(255,152,0,.25);
+
+}
+
+.view[data-route="home"] .act-ferry{
+
+  background: linear-gradient(135deg, #2196f3 0%, #64b5f6 100%); color: #fff; box-shadow: 0 8px 18px rgba(33,150,243,.25);
+
+}
+
+.view[data-route="home"] .act-hike{
+
+  background: linear-gradient(135deg, #4caf50 0%, #81c784 100%); color: #fff; box-shadow: 0 8px 18px rgba(76,175,80,.25);
+
+}
+
+.view[data-route="home"] .main-footer{
+
+  position: absolute; bottom: 0; width: 100%; text-align: center;
+
+  padding: .5rem; font-size: .8rem; opacity: .9; z-index: 3; color:#fff;
+
+}
+
+/* ============ MENETREND ============ */
+
+.view[data-route="schedule"] .schedule-wrap{ position: relative; min-height: 68vh; padding: 16px; }
+
+.view[data-route="schedule"] .app-bg{
+
+  position: fixed; inset: 0; z-index: -1;
+
+  background: url('https://i.imgur.com/tpCLdb3.png') center bottom / cover no-repeat fixed;
+
+  filter: brightness(.95);
+
+}
+
+.view[data-route="schedule"] h1{
+
+  margin:.5rem 0 1rem; font-size:clamp(1.6rem,4.8vw,2.2rem); text-shadow:0 2px 10px rgba(0,0,0,.6);
+
+}
+
+.view[data-route="schedule"] label{ display:block; text-align:left; margin:.7rem 0 .35rem; font-weight:700; }
+
+.view[data-route="schedule"] select,
+
+.view[data-route="schedule"] input[type="date"]{
+
+  width:100%; max-width:500px; padding:.8rem 1rem; border-radius:10px; border:1px solid rgba(255,255,255,.25);
+
+  background:#fff; color:#122; font-size:1rem;
+
+}
+
+.view[data-route="schedule"] input[type="date"]{ appearance:auto; }
+
+.view[data-route="schedule"] .quick-dates{
+
+  display:flex; gap:.5rem; margin:.6rem 0 .2rem; justify-content:center; flex-wrap:wrap;
+
+}
+
+.view[data-route="schedule"] .tag{
+
+  background:rgba(255,255,255,.1); color:#fff; border:1px solid rgba(255,255,255,.35); border-radius:999px; padding:.35rem .85rem; font-weight:700; cursor:pointer;
+
+}
+
+.view[data-route="schedule"] .btn{
+
+  display:block; margin:.9rem auto .2rem; color:#fff; background:linear-gradient(135deg,#2ea6ff,#197bd1);
+
+  box-shadow:0 6px 16px rgba(25,123,209,.35); border:none; border-radius:12px; font-weight:800; font-size:1rem; padding:.9rem 1.25rem; cursor:pointer;
+
+}
+
+.view[data-route="schedule"] .hint{ margin:.45rem 0 0; font-style:italic; opacity:.9; }
+
+.view[data-route="schedule"] .footer{ font-size:.9rem; opacity:.9; margin-top:.8rem; }
+
+.view[data-route="schedule"] #results{
+
+  margin-top:.9rem; padding:.9rem; border-radius:14px; background:rgba(0,0,0,.50); border:1px solid rgba(255,255,255,.15); min-height:3rem;
+
+}
+
+.view[data-route="schedule"] .result-head{
+
+  font-weight:900; padding:.35rem .2rem .55rem; border-bottom:1px solid rgba(255,255,255,.15); margin-bottom:.3rem;
+
+}
+
+.view[data-route="schedule"] .result-item{
+
+  padding:.55rem .2rem; border-bottom:1px dashed rgba(255,255,255,.15);
+
+}
+
+.view[data-route="schedule"] .result-item:last-child{ border-bottom:none; }
+
+/* ============ IDŐJÁRÁS ============ */
+
+.form-row{ display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+
+.input-lg{
+
+  flex:1 1 320px; min-width: 260px;
+
+  padding: 12px 14px; border-radius: 12px; border: 1px solid rgba(255,255,255,.5);
+
+  background: rgba(255,255,255,.96); color:#0b0d10; font-size: 16px;
+
+  box-shadow:0 6px 18px rgba(0,0,0,.10);
+
+}
+
+.btn{ padding: .75rem 1.1rem; border-radius: 12px; border: 0; cursor: pointer; font-size: 1rem; font-weight:800; }
+
+.btn-orange{ background: linear-gradient(135deg,#ff9800,#ffb74d); color: #fff; }
+
+.alert-storm{
+
+  margin: .4rem 0 .6rem;
+
+  padding: .5rem .75rem;
+
+  border-radius: 8px;
+
+  background: rgba(255,193,7,.14);
+
+  border: 1px solid rgba(255,193,7,.6);
+
+  font-weight: 600;
+
+  backdrop-filter: blur(4px);
+
+}
+
+/* ============ TÚRÁK modul ============ */
+
+.view[data-route="tours"]{ color:#fff; }
+
+.view[data-route="tours"] .app-shell{position:fixed; inset:0; display:flex; flex-direction:column}
+
+.view[data-route="tours"] .scroll-area{flex:1 1 auto; overflow:auto; -webkit-overflow-scrolling:touch; padding-bottom:120px}
+
+/* Háttér képek per alnézet */
+
+.view[data-route="tours"] .app-shell::before{
+
+  content:""; position:fixed; inset:0; z-index:-1;
+
+  background:
+
+    linear-gradient(to bottom, rgba(3,7,12,.55), rgba(3,7,12,.30)),
+
+    url("https://i.imgur.com/WVlR7CT.jpeg") center/cover no-repeat;
+
+}
+
+.view[data-route="tours"][data-view="view-search"] .app-shell::before{
+
+  background:
+
+    linear-gradient(to bottom, rgba(3,7,12,.55), rgba(3,7,12,.30)),
+
+    url("https://i.imgur.com/eadPZ11.jpeg") center/cover no-repeat !important;
+
+}
+
+.view[data-route="tours"][data-view="view-detail"] .app-shell::before{
+
+  background:
+
+    linear-gradient(to bottom, rgba(3,7,12,.60), rgba(3,7,12,.35)),
+
+    url("https://i.imgur.com/ckFfdPh.jpeg?v=2") center/cover no-repeat !important;
+
+}
+
+.view[data-route="tours"][data-view="view-map"] .app-shell::before{
+
+  background:
+
+    linear-gradient(to bottom, rgba(3,7,12,.35), rgba(3,7,12,.20)),
+
+    url("https://i.imgur.com/IAStNBF.jpeg") center/cover no-repeat !important;
+
+}
+
+.view[data-route="tours"][data-view="view-nearby"] .app-shell::before{
+
+  background:
+
+    linear-gradient(to bottom, rgba(3,7,12,.55), rgba(3,7,12,.30)),
+
+    url("https://i.imgur.com/gPWol2K.jpeg") center/cover no-repeat !important;
+
+}
+
+/* Tipográfia + elemek */
+
+.view[data-route="tours"] .hero{
+
+  padding:56px 16px 20px;
+
+  display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center;
+
+}
+
+.view[data-route="tours"] #page-title{
+
+  margin:0; font-size:36px; font-weight:800; text-shadow:0 6px 30px rgba(0,0,0,.45);
+
+}
+
+.view[data-route="tours"] .subtitle{
+
+  display:block; margin:8px 0 0; font-size:15px; color:#cfd6de; text-shadow:0 2px 12px rgba(0,0,0,.35);
+
+}
+
+.view[data-route="tours"] .view{display:none; padding:18px}
+
+.view[data-route="tours"] .view.active{display:block}
+
+.view[data-route="tours"] .view-inner{max-width:900px; margin:0 auto; padding:0 16px}
+
+.view[data-route="tours"] .sr-only{position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap}
+
+.view[data-route="tours"] .home{text-align:center; margin-top:8px}
+
+.view[data-route="tours"] .home .lead{color:#cfd6de; margin-bottom:22px}
+
+.view[data-route="tours"] .home-grid{display:grid; gap:18px; max-width:720px; margin:0 auto}
+
+.view[data-route="tours"] .home-card{
+
+  background:rgba(255,255,255,.95); color:#0b0d10; border-radius:22px;
+
+  box-shadow:0 12px 30px rgba(0,0,0,.18); padding:18px; backdrop-filter:blur(6px);
+
+  transition:transform .15s ease, box-shadow .15s ease; border:0; cursor:pointer; text-align:center;
+
+}
+
+.view[data-route="tours"] .home-card .icon{ font-size:30px; margin-bottom:6px }
+
+.view[data-route="tours"] .search-input{
+
+  display:block; width:100%; max-width:560px; margin:0 auto 8px;
+
+  padding:12px 14px; border-radius:12px; border:1px solid rgba(255,255,255,.5);
+
+  background:rgba(255,255,255,.96); color:#0b0d10; font-size:16px; box-shadow:0 6px 18px rgba(0,0,0,.10);
+
+}
+
+/* ====== TÚRA / KÖZELBEN LISTA + GOMBOK ====== */
+
+.view[data-route="tours"] .tura-list{
+
+  list-style:none;
+
+  padding:0;
+
+  margin:16px 0;
+
+}
+
+.view[data-route="tours"] .tura-list li{
+
+  padding:14px 16px;
+
+  margin-bottom:12px;
+
+  cursor:pointer;
+
+  background:linear-gradient(180deg, rgba(255,255,255,.98), rgba(255,255,255,.92));
+
+  color:#0b0d10;
+
+  border-radius:16px;
+
+  font-size:15px;
+
+  line-height:1.38;
+
+  box-shadow:0 8px 22px rgba(0,0,0,.12);
+
+  border-left:4px solid #9bd1ff;
+
+  display:flex;
+
+  justify-content:space-between;
+
+  align-items:flex-start;
+
+  gap:12px;
+
+}
+
+.view[data-route="tours"] .tura-list .left{
+
+  display:flex; flex-direction:column; gap:4px;
+
+}
+
+.view[data-route="tours"] .tura-list .title{
+
+  font-weight:800; color:#0b0d10; font-size:16px;
+
+}
+
+.view[data-route="tours"] .tura-list .meta{
+
+  font-size:13px; color:#475569;
+
+}
+
+/* Jobb oldal: gombcsoport */
+
+.view[data-route="tours"] .tura-list .right{
+
+  display:flex;
+
+  gap:8px;
+
+  flex-wrap:wrap;
+
+  justify-content:flex-end;
+
+  align-items:center;
+
+}
+
+/* KÖZÖS GOMB-STÍLUS – mindhárom gomb azonos méretű */
+
+.view[data-route="tours"] .navbtn,
+
+.view[data-route="tours"] .badge{
+
+  font-size:12px;
+
+  font-weight:800;
+
+  padding:6px 12px;
+
+  border-radius:999px;
+
+  border:1px solid rgba(0,0,0,.10);
+
+  white-space:nowrap;
+
+  line-height:1;
+
+}
+
+/* Gyalog / Bringával – fehér */
+
+.view[data-route="tours"] .navbtn{
+
+  background:#ffffff;
+
+  color:#0b0d10;
+
+  text-decoration:none;
+
+}
+
+/* Részletek – ugyanakkora, csak kék */
+
+.view[data-route="tours"] .badge{
+
+  background:#4da3ff;
+
+  color:#ffffff;
+
+  border:1px solid rgba(0,0,0,.08);
+
+  box-shadow:0 3px 8px rgba(0,0,0,.16);
+
+}
+
+/* Térkép */
+
+.view[data-route="tours"] #map{
+
+  width:100%; height:65vh; border-radius:14px;
+
+  box-shadow:0 8px 22px rgba(0,0,0,.12); overflow:hidden;
+
+}
+
+/* KÖZELBEN panel */
+
+.view[data-route="tours"] .nearby-panel{
+
+  background: rgba(255,255,255,.95); color:#0b0d10; border-radius:18px; box-shadow:0 12px 30px rgba(0,0,0,.18);
+
+  padding:12px; backdrop-filter: blur(6px); margin-bottom:12px;
+
+}
+
+.view[data-route="tours"] .nearby-row{
+
+  display:flex; gap:12px; align-items:center; flex-wrap:wrap; margin-bottom:10px;
+
+}
+
+.view[data-route="tours"] .primary-btn{
+
+  background:linear-gradient(180deg,#7db8f5,#5ea3ef); color:#fff;
+
+  border:1px solid rgba(255,255,255,.25); padding:12px 14px;
+
+  border-radius:12px; font-weight:800; cursor:pointer;
+
+}
+
+.view[data-route="tours"] .ghost-btn{
+
+  background:#ffffff; color:#0b0d10; border:1px solid #c7d2e0;
+
+  padding:12px 14px; border-radius:12px; font-weight:800; cursor:pointer;
+
+}
+
+.view[data-route="tours"] .switch{
+
+  display:inline-flex; align-items:center; gap:8px;
+
+  font-weight:800; color:#0b0d10;
+
+}
+
+@media (max-width:640px){
+
+  .view[data-route="tours"] #page-title{ font-size:30px }
+
+  .view[data-route="tours"] .search-input,
+
+  .view[data-route="tours"] .map-filter{ max-width:100% }
+
+}
+
+/* MOBIL: kártya törés szépen */
+
+@media (max-width:540px){
+
+  .view[data-route="tours"] .tura-list li{
+
+    flex-direction:column;
+
+    align-items:flex-start;
+
+  }
+
+  .view[data-route="tours"] .tura-list .right{
+
+    width:100%;
+
+    justify-content:flex-start;
+
+    margin-top:6px;
+
+  }
+
+}
+
+/* Védőöv */
+
+.view{ display:none; }
+
+.view.active{ display:block; }
+
+.card{ color:#fff !important; background: rgba(0,0,0,.45) !important; }
+
+/* Túra RÉSZLET – sötétebb scrim */
+
+.view[data-route="tours"][data-view="view-detail"] .app-shell::before{
+
+  background:
+
+    linear-gradient(to bottom, rgba(3,7,12,.78), rgba(3,7,12,.62)),
+
+    url("https://i.imgur.com/ckFfdPh.jpeg?v=2") center/cover no-repeat !important;
+
+}
+
+.view[data-route="tours"] #detail-card{
+
+  background: rgba(0,0,0,.40);
+
+  border: 1px solid rgba(255,255,255,.12);
+
+  border-radius: 16px;
+
+  padding: 16px;
+
+  backdrop-filter: blur(3px);
+
+}
+
+.view[data-route="tours"] .detail-title,
+
+.view[data-route="tours"] .detail-sub,
+
+.view[data-route="tours"] .detail-body p{
+
+  text-shadow: 0 2px 12px rgba(0,0,0,.7);
+
+}
