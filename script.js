@@ -290,7 +290,7 @@ async function getWeather(){
     return;
   }
 
-  const apiKey = "4cf63b4e774096f13c4b0576c7bc5338";
+  const apiKey = "21e5384f9a11e585cdfdf510dd5a64f6";
   const url = `https://api.openweathermap.org/data/2.5/forecast?q=${encodeURIComponent(city)}&appid=${apiKey}&units=metric&lang=hu`;
 
   if (result) result.innerText = "Lekérés folyamatban...";
