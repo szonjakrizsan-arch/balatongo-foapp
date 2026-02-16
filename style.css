@@ -1,715 +1,2767 @@
-/* ===== Globál ===== */
+/* ===== BalatonGo – Összefésült stílus ===== */
 
-:root{
+/* ===== Globál + változók ===== */
+:root {
+  /* Menü / UI színek */
+  --bg: #020617;
+  --overlay: rgba(15, 23, 42, 0.85);
+  --panel: #020617;
+  --panel-soft: #1A2E44;
+  --border: #2D3A4C;
+  --accent: #38bdf8;
+  --accent-soft: rgba(56, 189, 248, 0.18);
+  --text: #f9fafb;
+  --muted: #9ca3af;
+  --radius-xl: 26px;
+  --radius-md: 18px;
+  --shadow-soft: 0 18px 60px rgba(0, 0, 0, 0.7);
 
+  /* App háttérkép */
   --bg-url: url('https://i.imgur.com/GEkwVNS.jpg');
-
 }
 
-*{box-sizing:border-box}
+/* Reset */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
 
-html, body { height: 100%; }
-
-body{
-
-  min-height: 100dvh;
-
+html,
+body {
+  height: 100%;
   margin: 0;
+  padding: 0;
+}
 
+/* Globális listastílus – pöttyök ki alapból */
+ul,
+li {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+li::marker {
+  content: "";
+}
+
+/* ===== BODY ===== */
+
+body {
+  min-height: 100dvh;
+  margin: 0;
   font-family: "Segoe UI", system-ui, Arial, sans-serif;
-
   color: #fff;
-
   background: var(--bg-url) no-repeat center center / cover fixed;
-
-  transition: background .4s ease-in-out;
-
+  -webkit-font-smoothing: antialiased;
+  transition: background 0.4s ease-in-out;
 }
 
-#app{ padding: 0; }
+/* ===== Fő app konténer ===== */
+#app {
+  padding: 0;
+}
 
-/* Nézetek */
+/* ===== Nézetek (router) ===== */
+.view {
+  display: none;
+}
 
-.view{ display:none; }
+.view.active {
+  display: block;
+}
 
-.view.active{ display:block; }
-
-/* Kártya (globális) */
-
-.card{
-
-  background: rgba(0,0,0,.45);
-
+/* ===== Kártya (globális) ===== */
+.card {
+  background: rgba(0, 0, 0, 0.45);
   padding: 1.4rem;
-
   border-radius: 14px;
-
-  box-shadow: 0 8px 28px rgba(0,0,0,.4);
-
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.4);
   backdrop-filter: blur(6px);
-
   max-width: 900px;
-
   margin: 16px auto;
-
+  color: #fff !important;
 }
 
-.card-wide{max-width: 1000px}
+.card-wide {
+  max-width: 1000px;
+}
 
-/* Üveges alsó sáv + vissza gomb */
+/* ===== Üveges alsó sáv + vissza gomb ===== */
 
-.bottom-bar.glass{
-
+.bottom-bar.glass {
   position: sticky;
-
   bottom: 0;
-
   margin-top: 14px;
-
   display: flex;
-
   justify-content: center;
-
   padding: 12px 16px calc(12px + env(safe-area-inset-bottom));
-
-  background: linear-gradient(to top, rgba(0,0,0,.50), rgba(0,0,0,0));
-
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0));
   backdrop-filter: blur(6px);
-
   z-index: 30;
-
 }
 
-.back-btn{
-
-  padding:14px 22px; border-radius:999px; font-weight:800; font-size:16px;
-
-  background:#111318; color:#fff; border:1px solid rgba(255,255,255,.08);
-
-  box-shadow:0 14px 34px rgba(0,0,0,.35);
-
+.back-btn {
+  padding: 14px 22px;
+  border-radius: 999px;
+  font-weight: 800;
+  font-size: 16px;
+  background: #111318;
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.35);
 }
 
-/* Panel/forecast */
+/* ===== Panel / forecast ===== */
 
-.panel{ background: rgba(0,0,0,.5); border-radius: 10px; padding: 1rem; margin-top: .8rem; }
+.panel {
+  background: rgba(0, 0, 0, 0.5);
+  border-radius: 10px;
+  padding: 1rem;
+  margin-top: 0.8rem;
+}
 
-.placeholder{ color: rgba(255,255,255,.85); font-style: italic; }
+.placeholder {
+  color: rgba(255, 255, 255, 0.85);
+  font-style: italic;
+}
 
-.forecast-item{ border-bottom: 1px solid rgba(255,255,255,.2); padding: .55rem 0; font-size: 1.08rem; }
+.forecast-item {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+  padding: 0.55rem 0;
+  font-size: 1.08rem;
+}
 
-.temp-cold{ color:#4fc3f7; font-weight:700; }
+.temp-cold {
+  color: #4fc3f7;
+  font-weight: 700;
+}
 
-.temp-mild{ color:#81c784; font-weight:700; }
+.temp-mild {
+  color: #81c784;
+  font-weight: 700;
+}
 
-.temp-warm{ color:#ffb74d; font-weight:700; }
+.temp-warm {
+  color: #ffb74d;
+  font-weight: 700;
+}
 
-.temp-hot { color:#e57373; font-weight:700; }
+.temp-hot {
+  color: #e57373;
+  font-weight: 700;
+}
 
 /* ================= HOME ================= */
 
-.view[data-route="home"] .home-wrap{
-
+.view[data-route="home"] .home-wrap {
   position: relative;
-
   height: 100dvh;
-
   overflow: hidden;
-
 }
 
-.view[data-route="home"] .bg-photo{
-
-  position: absolute; inset: 0; z-index: 0;
-
-  background: url('https://i.imgur.com/yXy6uJ7_d.jpeg?maxwidth=520&shape=thumb&fidelity=high')
-
-              no-repeat center center / cover;
-
-}
-
-.view[data-route="home"] .dark-overlay{
-
-  position: absolute; inset: 0; z-index: 1;
-
-  background: linear-gradient(180deg, rgba(6,18,30,0.16), rgba(6,18,30,0.08));
-
-  pointer-events: none;
-
-}
-
-.view[data-route="home"] .cloud-layer{ position: absolute; inset: 0; z-index: 2; overflow: hidden; pointer-events:none;}
-
-.view[data-route="home"] .cloud{
-
+.view[data-route="home"] .bg-photo {
   position: absolute;
+  inset: 0;
+  z-index: 0;
+  background: url('https://i.imgur.com/yXy6uJ7_d.jpeg?maxwidth=520&shape=thumb&fidelity=high')
+    no-repeat center center / cover;
+}
 
-  background: url('https://png.pngtree.com/png-vector/20220527/ourlarge/pngtree-white-clouds-png-image_4718242.png') no-repeat center;
+.view[data-route="home"] .dark-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background: linear-gradient(180deg, rgba(6, 18, 30, 0.16), rgba(6, 18, 30, 0.08));
+  pointer-events: none;
+}
 
+.view[data-route="home"] .cloud-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.view[data-route="home"] .cloud {
+  position: absolute;
+  background: url('https://png.pngtree.com/png-vector/20220527/ourlarge/pngtree-white-clouds-png-image_4718242.png')
+    no-repeat center;
   background-size: cover;
-
-  opacity: .92;
-
-  filter: blur(1.2px) saturate(1.03) contrast(.98);
-
+  opacity: 0.92;
+  filter: blur(1.2px) saturate(1.03) contrast(0.98);
   border-radius: 999px;
-
-  -webkit-mask-image: radial-gradient(circle at 50% 50%, rgba(0,0,0,1) 60%, rgba(0,0,0,0) 100%);
-
-          mask-image: radial-gradient(circle at 50% 50%, rgba(0,0,0,1) 60%, rgba(0,0,0,0) 100%);
-
+  -webkit-mask-image: radial-gradient(
+    circle at 50% 50%,
+    rgba(0, 0, 0, 1) 60%,
+    rgba(0, 0, 0, 0) 100%
+  );
+  mask-image: radial-gradient(
+    circle at 50% 50%,
+    rgba(0, 0, 0, 1) 60%,
+    rgba(0, 0, 0, 0) 100%
+  );
   will-change: transform, opacity;
-
 }
 
-.view[data-route="home"] .cloud.c1{ width: 520px; height: 280px; bottom: 66%; left: -600px; animation: cloudMove 88s linear infinite; }
+.view[data-route="home"] .cloud.c1 {
+  width: 520px;
+  height: 280px;
+  bottom: 66%;
+  left: -600px;
+  animation: cloudMove 88s linear infinite;
+}
 
-.view[data-route="home"] .cloud.c2{ width: 760px; height: 380px; bottom: 72%; left: -900px; animation: cloudMove 120s linear infinite; }
+.view[data-route="home"] .cloud.c2 {
+  width: 760px;
+  height: 380px;
+  bottom: 72%;
+  left: -900px;
+  animation: cloudMove 120s linear infinite;
+}
 
-.view[data-route="home"] .cloud.c3{ width: 420px; height: 240px; bottom: 55%; left: -500px; animation: cloudMove 70s linear infinite; }
+.view[data-route="home"] .cloud.c3 {
+  width: 420px;
+  height: 240px;
+  bottom: 55%;
+  left: -500px;
+  animation: cloudMove 70s linear infinite;
+}
 
-@keyframes cloudMove { from{ transform: translateX(0); } to{ transform: translateX(2200px); } }
+@keyframes cloudMove {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(2200px);
+  }
+}
 
-.view[data-route="home"] .ui{
-
-  position: relative; z-index: 3; display: flex; align-items: center; justify-content: center; height: 100%;
-
+.view[data-route="home"] .ui {
+  position: relative;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
   padding: 20px 16px;
-
 }
 
-.view[data-route="home"] .home-title{ margin: 0 0 .3rem 0; font-size: 2.2rem; text-align:center;}
-
-.view[data-route="home"] .tagline{ margin: .5rem 0 1.6rem 0; font-size: 1rem; opacity: .9; text-align:center;}
-
-.view[data-route="home"] .btn-column{ display: flex; flex-direction: column; gap: 1rem; }
-
-.view[data-route="home"] .action-button{
-
-  border: none; padding: 1rem 2rem; border-radius: 12px;
-
-  font-size: 1.1rem; cursor: pointer; font-weight: bold;
-
-  transition: transform .2s ease, box-shadow .2s ease;
-
+.view[data-route="home"] .home-title {
+  margin: 0 0 0.3rem 0;
+  font-size: 2.2rem;
+  text-align: center;
 }
 
-.view[data-route="home"] .action-button:hover{ transform: translateY(-3px); }
-
-.view[data-route="home"] .act-weather{
-
-  background: linear-gradient(135deg, #ff9800 0%, #ffb74d 100%); color: #fff; box-shadow: 0 8px 18px rgba(255,152,0,.25);
-
+.view[data-route="home"] .tagline {
+  margin: 0.5rem 0 1.6rem 0;
+  font-size: 1rem;
+  opacity: 0.9;
+  text-align: center;
 }
 
-.view[data-route="home"] .act-ferry{
-
-  background: linear-gradient(135deg, #2196f3 0%, #64b5f6 100%); color: #fff; box-shadow: 0 8px 18px rgba(33,150,243,.25);
-
+.view[data-route="home"] .btn-column {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
 }
 
-.view[data-route="home"] .act-hike{
-
-  background: linear-gradient(135deg, #4caf50 0%, #81c784 100%); color: #fff; box-shadow: 0 8px 18px rgba(76,175,80,.25);
-
+.view[data-route="home"] .action-button {
+  border: none;
+  padding: 1rem 2rem;
+  border-radius: 12px;
+  font-size: 1.1rem;
+  cursor: pointer;
+  font-weight: bold;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
-.view[data-route="home"] .main-footer{
+.view[data-route="home"] .action-button:hover {
+  transform: translateY(-3px);
+}
 
-  position: absolute; bottom: 0; width: 100%; text-align: center;
+.view[data-route="home"] .act-weather {
+  background: linear-gradient(135deg, #ff9800 0%, #ffb74d 100%);
+  color: #fff;
+  box-shadow: 0 8px 18px rgba(255, 152, 0, 0.25);
+}
 
-  padding: .5rem; font-size: .8rem; opacity: .9; z-index: 3; color:#fff;
+.view[data-route="home"] .act-ferry {
+  background: linear-gradient(135deg, #2196f3 0%, #64b5f6 100%);
+  color: #fff;
+  box-shadow: 0 8px 18px rgba(33, 150, 243, 0.25);
+}
 
+.view[data-route="home"] .act-hike {
+  background: linear-gradient(135deg, #4caf50 0%, #81c784 100%);
+  color: #fff;
+  box-shadow: 0 8px 18px rgba(76, 175, 80, 0.25);
+}
+
+.view[data-route="home"] .main-footer {
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  text-align: center;
+  padding: 0.5rem;
+  font-size: 0.8rem;
+  opacity: 0.9;
+  z-index: 3;
+  color: #fff;
 }
 
 /* ============ MENETREND ============ */
 
-.view[data-route="schedule"] .schedule-wrap{ position: relative; min-height: 68vh; padding: 16px; }
-
-.view[data-route="schedule"] .app-bg{
-
-  position: fixed; inset: 0; z-index: -1;
-
-  background: url('https://i.imgur.com/tpCLdb3.png') center bottom / cover no-repeat fixed;
-
-  filter: brightness(.95);
-
+.view[data-route="schedule"] .schedule-wrap {
+  position: relative;
+  min-height: 68vh;
+  padding: 16px;
 }
 
-.view[data-route="schedule"] h1{
-
-  margin:.5rem 0 1rem; font-size:clamp(1.6rem,4.8vw,2.2rem); text-shadow:0 2px 10px rgba(0,0,0,.6);
-
+.view[data-route="schedule"] .app-bg {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background: url('https://i.imgur.com/tpCLdb3.png') center bottom / cover no-repeat
+    fixed;
+  filter: brightness(0.95);
 }
 
-.view[data-route="schedule"] label{ display:block; text-align:left; margin:.7rem 0 .35rem; font-weight:700; }
+.view[data-route="schedule"] h1 {
+  margin: 0.5rem 0 1rem;
+  font-size: clamp(1.6rem, 4.8vw, 2.2rem);
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.6);
+}
+
+.view[data-route="schedule"] label {
+  display: block;
+  text-align: left;
+  margin: 0.7rem 0 0.35rem;
+  font-weight: 700;
+}
 
 .view[data-route="schedule"] select,
-
-.view[data-route="schedule"] input[type="date"]{
-
-  width:100%; max-width:500px; padding:.8rem 1rem; border-radius:10px; border:1px solid rgba(255,255,255,.25);
-
-  background:#fff; color:#122; font-size:1rem;
-
+.view[data-route="schedule"] input[type="date"] {
+  width: 100%;
+  max-width: 500px;
+  padding: 0.8rem 1rem;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  background: #fff;
+  color: #122;
+  font-size: 1rem;
 }
 
-.view[data-route="schedule"] input[type="date"]{ appearance:auto; }
-
-.view[data-route="schedule"] .quick-dates{
-
-  display:flex; gap:.5rem; margin:.6rem 0 .2rem; justify-content:center; flex-wrap:wrap;
-
+.view[data-route="schedule"] input[type="date"] {
+  appearance: auto;
 }
 
-.view[data-route="schedule"] .tag{
-
-  background:rgba(255,255,255,.1); color:#fff; border:1px solid rgba(255,255,255,.35); border-radius:999px; padding:.35rem .85rem; font-weight:700; cursor:pointer;
-
+.view[data-route="schedule"] .quick-dates {
+  display: flex;
+  gap: 0.5rem;
+  margin: 0.6rem 0 0.2rem;
+  justify-content: center;
+  flex-wrap: wrap;
 }
 
-.view[data-route="schedule"] .btn{
-
-  display:block; margin:.9rem auto .2rem; color:#fff; background:linear-gradient(135deg,#2ea6ff,#197bd1);
-
-  box-shadow:0 6px 16px rgba(25,123,209,.35); border:none; border-radius:12px; font-weight:800; font-size:1rem; padding:.9rem 1.25rem; cursor:pointer;
-
+.view[data-route="schedule"] .tag {
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  border-radius: 999px;
+  padding: 0.35rem 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
 }
 
-.view[data-route="schedule"] .hint{ margin:.45rem 0 0; font-style:italic; opacity:.9; }
-
-.view[data-route="schedule"] .footer{ font-size:.9rem; opacity:.9; margin-top:.8rem; }
-
-.view[data-route="schedule"] #results{
-
-  margin-top:.9rem; padding:.9rem; border-radius:14px; background:rgba(0,0,0,.50); border:1px solid rgba(255,255,255,.15); min-height:3rem;
-
+.view[data-route="schedule"] .btn {
+  display: block;
+  margin: 0.9rem auto 0.2rem;
+  color: #fff;
+  background: linear-gradient(135deg, #2ea6ff, #197bd1);
+  box-shadow: 0 6px 16px rgba(25, 123, 209, 0.35);
+  border: none;
+  border-radius: 12px;
+  font-weight: 800;
+  font-size: 1rem;
+  padding: 0.9rem 1.25rem;
+  cursor: pointer;
 }
 
-.view[data-route="schedule"] .result-head{
-
-  font-weight:900; padding:.35rem .2rem .55rem; border-bottom:1px solid rgba(255,255,255,.15); margin-bottom:.3rem;
-
+.view[data-route="schedule"] .hint {
+  margin: 0.45rem 0 0;
+  font-style: italic;
+  opacity: 0.9;
 }
 
-.view[data-route="schedule"] .result-item{
-
-  padding:.55rem .2rem; border-bottom:1px dashed rgba(255,255,255,.15);
-
+.view[data-route="schedule"] .footer {
+  font-size: 0.9rem;
+  opacity: 0.9;
+  margin-top: 0.8rem;
 }
 
-.view[data-route="schedule"] .result-item:last-child{ border-bottom:none; }
+.view[data-route="schedule"] #results {
+  margin-top: 0.9rem;
+  padding: 0.9rem;
+  border-radius: 14px;
+  background: rgba(0, 0, 0, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  min-height: 3rem;
+}
+
+.view[data-route="schedule"] .result-head {
+  font-weight: 900;
+  padding: 0.35rem 0.2rem 0.55rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+  margin-bottom: 0.3rem;
+}
+
+.view[data-route="schedule"] .result-item {
+  padding: 0.55rem 0.2rem;
+  border-bottom: 1px dashed rgba(255, 255, 255, 0.15);
+}
+
+.view[data-route="schedule"] .result-item:last-child {
+  border-bottom: none;
+}
 
 /* ============ IDŐJÁRÁS ============ */
 
-.form-row{ display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
-
-.input-lg{
-
-  flex:1 1 320px; min-width: 260px;
-
-  padding: 12px 14px; border-radius: 12px; border: 1px solid rgba(255,255,255,.5);
-
-  background: rgba(255,255,255,.96); color:#0b0d10; font-size: 16px;
-
-  box-shadow:0 6px 18px rgba(0,0,0,.10);
-
+.form-row {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
 }
 
-.btn{ padding: .75rem 1.1rem; border-radius: 12px; border: 0; cursor: pointer; font-size: 1rem; font-weight:800; }
+.input-lg {
+  flex: 1 1 320px;
+  min-width: 260px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  background: rgba(255, 255, 255, 0.96);
+  color: #0b0d10;
+  font-size: 16px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.1);
+}
 
-.btn-orange{ background: linear-gradient(135deg,#ff9800,#ffb74d); color: #fff; }
+.btn {
+  padding: 0.75rem 1.1rem;
+  border-radius: 12px;
+  border: 0;
+  cursor: pointer;
+  font-size: 1rem;
+  font-weight: 800;
+}
 
-.alert-storm{
+.btn-orange {
+  background: linear-gradient(135deg, #ff9800, #ffb74d);
+  color: #fff;
+}
 
-  margin: .4rem 0 .6rem;
-
-  padding: .5rem .75rem;
-
+.alert-storm {
+  margin: 0.4rem 0 0.6rem;
+  padding: 0.5rem 0.75rem;
   border-radius: 8px;
-
-  background: rgba(255,193,7,.14);
-
-  border: 1px solid rgba(255,193,7,.6);
-
+  background: rgba(255, 193, 7, 0.14);
+  border: 1px solid rgba(255, 193, 7, 0.6);
   font-weight: 600;
-
   backdrop-filter: blur(4px);
-
 }
 
 /* ============ TÚRÁK modul ============ */
 
-.view[data-route="tours"]{ color:#fff; }
+.view[data-route="tours"] {
+  color: #fff;
+}
 
-.view[data-route="tours"] .app-shell{position:fixed; inset:0; display:flex; flex-direction:column}
+.view[data-route="tours"] .app-shell {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+}
 
-.view[data-route="tours"] .scroll-area{flex:1 1 auto; overflow:auto; -webkit-overflow-scrolling:touch; padding-bottom:120px}
+.view[data-route="tours"] .scroll-area {
+  flex: 1 1 auto;
+  overflow: auto;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: 120px;
+}
 
 /* Háttér képek per alnézet */
 
-.view[data-route="tours"] .app-shell::before{
-
-  content:""; position:fixed; inset:0; z-index:-1;
-
+.view[data-route="tours"] .app-shell::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
   background:
-
-    linear-gradient(to bottom, rgba(3,7,12,.55), rgba(3,7,12,.30)),
-
+    linear-gradient(to bottom, rgba(3, 7, 12, 0.55), rgba(3, 7, 12, 0.3)),
     url("https://i.imgur.com/WVlR7CT.jpeg") center/cover no-repeat;
-
 }
 
-.view[data-route="tours"][data-view="view-search"] .app-shell::before{
-
+.view[data-route="tours"][data-view="view-search"] .app-shell::before {
   background:
-
-    linear-gradient(to bottom, rgba(3,7,12,.55), rgba(3,7,12,.30)),
-
+    linear-gradient(to bottom, rgba(3, 7, 12, 0.55), rgba(3, 7, 12, 0.3)),
     url("https://i.imgur.com/eadPZ11.jpeg") center/cover no-repeat !important;
-
 }
 
-.view[data-route="tours"][data-view="view-detail"] .app-shell::before{
-
+.view[data-route="tours"][data-view="view-detail"] .app-shell::before {
   background:
-
-    linear-gradient(to bottom, rgba(3,7,12,.60), rgba(3,7,12,.35)),
-
+    linear-gradient(to bottom, rgba(3, 7, 12, 0.6), rgba(3, 7, 12, 0.35)),
     url("https://i.imgur.com/ckFfdPh.jpeg?v=2") center/cover no-repeat !important;
-
 }
 
-.view[data-route="tours"][data-view="view-map"] .app-shell::before{
-
+.view[data-route="tours"][data-view="view-map"] .app-shell::before {
   background:
-
-    linear-gradient(to bottom, rgba(3,7,12,.35), rgba(3,7,12,.20)),
-
+    linear-gradient(to bottom, rgba(3, 7, 12, 0.35), rgba(3, 7, 12, 0.2)),
     url("https://i.imgur.com/IAStNBF.jpeg") center/cover no-repeat !important;
-
 }
 
-.view[data-route="tours"][data-view="view-nearby"] .app-shell::before{
-
+.view[data-route="tours"][data-view="view-nearby"] .app-shell::before {
   background:
-
-    linear-gradient(to bottom, rgba(3,7,12,.55), rgba(3,7,12,.30)),
-
+    linear-gradient(to bottom, rgba(3, 7, 12, 0.55), rgba(3, 7, 12, 0.3)),
     url("https://i.imgur.com/gPWol2K.jpeg") center/cover no-repeat !important;
-
 }
 
 /* Tipográfia + elemek */
 
-.view[data-route="tours"] .hero{
-
-  padding:56px 16px 20px;
-
-  display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center;
-
+.view[data-route="tours"] .hero {
+  padding: 56px 16px 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
 }
 
-.view[data-route="tours"] #page-title{
-
-  margin:0; font-size:36px; font-weight:800; text-shadow:0 6px 30px rgba(0,0,0,.45);
-
+.view[data-route="tours"] #page-title {
+  margin: 0;
+  font-size: 36px;
+  font-weight: 800;
+  text-shadow: 0 6px 30px rgba(0, 0, 0, 0.45);
 }
 
-.view[data-route="tours"] .subtitle{
-
-  display:block; margin:8px 0 0; font-size:15px; color:#cfd6de; text-shadow:0 2px 12px rgba(0,0,0,.35);
-
+.view[data-route="tours"] .subtitle {
+  display: block;
+  margin: 8px 0 0;
+  font-size: 15px;
+  color: #cfd6de;
+  text-shadow: 0 2px 12px rgba(0, 0, 0, 0.35);
 }
 
-.view[data-route="tours"] .view{display:none; padding:18px}
-
-.view[data-route="tours"] .view.active{display:block}
-
-.view[data-route="tours"] .view-inner{max-width:900px; margin:0 auto; padding:0 16px}
-
-.view[data-route="tours"] .sr-only{position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap}
-
-.view[data-route="tours"] .home{text-align:center; margin-top:8px}
-
-.view[data-route="tours"] .home .lead{color:#cfd6de; margin-bottom:22px}
-
-.view[data-route="tours"] .home-grid{display:grid; gap:18px; max-width:720px; margin:0 auto}
-
-.view[data-route="tours"] .home-card{
-
-  background:rgba(255,255,255,.95); color:#0b0d10; border-radius:22px;
-
-  box-shadow:0 12px 30px rgba(0,0,0,.18); padding:18px; backdrop-filter:blur(6px);
-
-  transition:transform .15s ease, box-shadow .15s ease; border:0; cursor:pointer; text-align:center;
-
+.view[data-route="tours"] .view {
+  display: none;
+  padding: 18px;
 }
 
-.view[data-route="tours"] .home-card .icon{ font-size:30px; margin-bottom:6px }
+.view[data-route="tours"] .view.active {
+  display: block;
+}
 
-.view[data-route="tours"] .search-input{
+.view[data-route="tours"] .view-inner {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 0 16px;
+}
 
-  display:block; width:100%; max-width:560px; margin:0 auto 8px;
+.view[data-route="tours"] .sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
 
-  padding:12px 14px; border-radius:12px; border:1px solid rgba(255,255,255,.5);
+.view[data-route="tours"] .home {
+  text-align: center;
+  margin-top: 8px;
+}
 
-  background:rgba(255,255,255,.96); color:#0b0d10; font-size:16px; box-shadow:0 6px 18px rgba(0,0,0,.10);
+.view[data-route="tours"] .home .lead {
+  color: #cfd6de;
+  margin-bottom: 22px;
+}
 
+.view[data-route="tours"] .home-grid {
+  display: grid;
+  gap: 18px;
+  max-width: 720px;
+  margin: 0 auto;
+}
+
+.view[data-route="tours"] .home-card {
+  background: rgba(255, 255, 255, 0.95);
+  color: #0b0d10;
+  border-radius: 22px;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.18);
+  padding: 18px;
+  backdrop-filter: blur(6px);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  border: 0;
+  cursor: pointer;
+  text-align: center;
+}
+
+.view[data-route="tours"] .home-card .icon {
+  font-size: 30px;
+  margin-bottom: 6px;
+}
+
+.view[data-route="tours"] .search-input {
+  display: block;
+  width: 100%;
+  max-width: 560px;
+  margin: 0 auto 8px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  background: rgba(255, 255, 255, 0.96);
+  color: #0b0d10;
+  font-size: 16px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.1);
 }
 
 /* ====== TÚRA / KÖZELBEN LISTA + GOMBOK ====== */
 
-.view[data-route="tours"] .tura-list{
-
-  list-style:none;
-
-  padding:0;
-
-  margin:16px 0;
-
+.view[data-route="tours"] .tura-list {
+  list-style: none;
+  padding: 0;
+  margin: 16px 0;
 }
 
-.view[data-route="tours"] .tura-list li{
-
-  padding:14px 16px;
-
-  margin-bottom:12px;
-
-  cursor:pointer;
-
-  background:linear-gradient(180deg, rgba(255,255,255,.98), rgba(255,255,255,.92));
-
-  color:#0b0d10;
-
-  border-radius:16px;
-
-  font-size:15px;
-
-  line-height:1.38;
-
-  box-shadow:0 8px 22px rgba(0,0,0,.12);
-
-  border-left:4px solid #9bd1ff;
-
-  display:flex;
-
-  justify-content:space-between;
-
-  align-items:flex-start;
-
-  gap:12px;
-
+.view[data-route="tours"] .tura-list li {
+  padding: 14px 16px;
+  margin-bottom: 12px;
+  cursor: pointer;
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.98),
+    rgba(255, 255, 255, 0.92)
+  );
+  color: #0b0d10;
+  border-radius: 16px;
+  font-size: 15px;
+  line-height: 1.38;
+  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.12);
+  border-left: 4px solid #9bd1ff;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
 }
 
-.view[data-route="tours"] .tura-list .left{
-
-  display:flex; flex-direction:column; gap:4px;
-
+.view[data-route="tours"] .tura-list .left {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
 }
 
-.view[data-route="tours"] .tura-list .title{
-
-  font-weight:800; color:#0b0d10; font-size:16px;
-
+.view[data-route="tours"] .tura-list .title {
+  font-weight: 800;
+  color: #0b0d10;
+  font-size: 16px;
 }
 
-.view[data-route="tours"] .tura-list .meta{
-
-  font-size:13px; color:#475569;
-
+.view[data-route="tours"] .tura-list .meta {
+  font-size: 13px;
+  color: #475569;
 }
 
 /* Jobb oldal: gombcsoport */
 
-.view[data-route="tours"] .tura-list .right{
-
-  display:flex;
-
-  gap:8px;
-
-  flex-wrap:wrap;
-
-  justify-content:flex-end;
-
-  align-items:center;
-
+.view[data-route="tours"] .tura-list .right {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  align-items: center;
 }
 
 /* KÖZÖS GOMB-STÍLUS – mindhárom gomb azonos méretű */
 
 .view[data-route="tours"] .navbtn,
-
-.view[data-route="tours"] .badge{
-
-  font-size:12px;
-
-  font-weight:800;
-
-  padding:6px 12px;
-
-  border-radius:999px;
-
-  border:1px solid rgba(0,0,0,.10);
-
-  white-space:nowrap;
-
-  line-height:1;
-
+.view[data-route="tours"] .badge {
+  font-size: 12px;
+  font-weight: 800;
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  white-space: nowrap;
+  line-height: 1;
 }
 
 /* Gyalog / Bringával – fehér */
 
-.view[data-route="tours"] .navbtn{
-
-  background:#ffffff;
-
-  color:#0b0d10;
-
-  text-decoration:none;
-
+.view[data-route="tours"] .navbtn {
+  background: #ffffff;
+  color: #0b0d10;
+  text-decoration: none;
 }
 
 /* Részletek – ugyanakkora, csak kék */
 
-.view[data-route="tours"] .badge{
-
-  background:#4da3ff;
-
-  color:#ffffff;
-
-  border:1px solid rgba(0,0,0,.08);
-
-  box-shadow:0 3px 8px rgba(0,0,0,.16);
-
+.view[data-route="tours"] .badge {
+  background: #4da3ff;
+  color: #ffffff;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.16);
 }
 
 /* Térkép */
 
-.view[data-route="tours"] #map{
-
-  width:100%; height:65vh; border-radius:14px;
-
-  box-shadow:0 8px 22px rgba(0,0,0,.12); overflow:hidden;
-
+.view[data-route="tours"] #map {
+  width: 100%;
+  height: 65vh;
+  border-radius: 14px;
+  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.12);
+  overflow: hidden;
 }
 
 /* KÖZELBEN panel */
 
-.view[data-route="tours"] .nearby-panel{
-
-  background: rgba(255,255,255,.95); color:#0b0d10; border-radius:18px; box-shadow:0 12px 30px rgba(0,0,0,.18);
-
-  padding:12px; backdrop-filter: blur(6px); margin-bottom:12px;
-
+.view[data-route="tours"] .nearby-panel {
+  background: rgba(255, 255, 255, 0.95);
+  color: #0b0d10;
+  border-radius: 18px;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.18);
+  padding: 12px;
+  backdrop-filter: blur(6px);
+  margin-bottom: 12px;
 }
 
-.view[data-route="tours"] .nearby-row{
-
-  display:flex; gap:12px; align-items:center; flex-wrap:wrap; margin-bottom:10px;
-
+.view[data-route="tours"] .nearby-row {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-bottom: 10px;
 }
 
-.view[data-route="tours"] .primary-btn{
-
-  background:linear-gradient(180deg,#7db8f5,#5ea3ef); color:#fff;
-
-  border:1px solid rgba(255,255,255,.25); padding:12px 14px;
-
-  border-radius:12px; font-weight:800; cursor:pointer;
-
+.view[data-route="tours"] .primary-btn {
+  background: linear-gradient(180deg, #7db8f5, #5ea3ef);
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  padding: 12px 14px;
+  border-radius: 12px;
+  font-weight: 800;
+  cursor: pointer;
 }
 
-.view[data-route="tours"] .ghost-btn{
-
-  background:#ffffff; color:#0b0d10; border:1px solid #c7d2e0;
-
-  padding:12px 14px; border-radius:12px; font-weight:800; cursor:pointer;
-
+.view[data-route="tours"] .ghost-btn {
+  background: #ffffff;
+  color: #0b0d10;
+  border: 1px solid #c7d2e0;
+  padding: 12px 14px;
+  border-radius: 12px;
+  font-weight: 800;
+  cursor: pointer;
 }
 
-.view[data-route="tours"] .switch{
-
-  display:inline-flex; align-items:center; gap:8px;
-
-  font-weight:800; color:#0b0d10;
-
+.view[data-route="tours"] .switch {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 800;
+  color: #0b0d10;
 }
 
-@media (max-width:640px){
+.view[data-route="tours"] .map-panel {
+  background: rgba(255, 255, 255, 0.96);
+  border-radius: 18px;
+  padding: 12px;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.18);
+}
 
-  .view[data-route="tours"] #page-title{ font-size:30px }
+.view[data-route="tours"] .map-toolbar {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.view[data-route="tours"] .map-filter {
+  flex: 1 1 auto;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid #c7d2e0;
+  font-size: 14px;
+}
+
+.view[data-route="tours"] .map-counter,
+#nearby-counter,
+#map-counter {
+  font-size: 12px;
+  font-weight: 800;
+  color: #1f2937;
+}
+
+.view[data-route="tours"] .csv-status,
+#nearby-status,
+#map-status {
+  margin-top: 4px;
+  font-size: 13px;
+  color: #374151;
+}
+
+/* ====== Részlet nézet védőöv ====== */
+
+.view[data-route="tours"][data-view="view-detail"] .app-shell::before {
+  background:
+    linear-gradient(to bottom, rgba(3, 7, 12, 0.78), rgba(3, 7, 12, 0.62)),
+    url("https://i.imgur.com/ckFfdPh.jpeg?v=2") center/cover no-repeat !important;
+}
+
+.view[data-route="tours"] #detail-card {
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 16px;
+  padding: 16px;
+  backdrop-filter: blur(3px);
+}
+
+.view[data-route="tours"] .detail-title,
+.view[data-route="tours"] .detail-sub,
+.view[data-route="tours"] .detail-body p {
+  text-shadow: 0 2px 12px rgba(0, 0, 0, 0.7);
+}
+
+/* ===== Reszponzív ===== */
+
+@media (max-width: 640px) {
+  .view[data-route="tours"] #page-title {
+    font-size: 30px;
+  }
 
   .view[data-route="tours"] .search-input,
-
-  .view[data-route="tours"] .map-filter{ max-width:100% }
-
+  .view[data-route="tours"] .map-filter {
+    max-width: 100%;
+  }
 }
 
 /* MOBIL: kártya törés szépen */
 
-@media (max-width:540px){
-
-  .view[data-route="tours"] .tura-list li{
-
-    flex-direction:column;
-
-    align-items:flex-start;
-
+@media (max-width: 540px) {
+  .view[data-route="tours"] .tura-list li {
+    flex-direction: column;
+    align-items: flex-start;
   }
 
-  .view[data-route="tours"] .tura-list .right{
-
-    width:100%;
-
-    justify-content:flex-start;
-
-    margin-top:6px;
-
+  .view[data-route="tours"] .tura-list .right {
+    width: 100%;
+    justify-content: flex-start;
+    margin-top: 6px;
   }
-
 }
 
-/* Védőöv */
+/* ===================================================== */
+/* ============ MENÜ / OLDALSÓ MENÜ / MODÁLOK ========= */
+/* ===================================================== */
 
-.view{ display:none; }
+/* Felső BalatonGo sáv + app keret */
 
-.view.active{ display:block; }
-
-.card{ color:#fff !important; background: rgba(0,0,0,.45) !important; }
-
-/* Túra RÉSZLET – sötétebb scrim */
-
-.view[data-route="tours"][data-view="view-detail"] .app-shell::before{
-
-  background:
-
-    linear-gradient(to bottom, rgba(3,7,12,.78), rgba(3,7,12,.62)),
-
-    url("https://i.imgur.com/ckFfdPh.jpeg?v=2") center/cover no-repeat !important;
-
+.app {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
 }
 
-.view[data-route="tours"] #detail-card{
+/* FELSŐ SÁV */
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  background: rgba(15, 23, 42, 0.9);
+  border-bottom: 1px solid var(--border);
+  backdrop-filter: blur(10px);
+}
 
-  background: rgba(0,0,0,.40);
+.logo {
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  font-size: 1rem;
+}
 
-  border: 1px solid rgba(255,255,255,.12);
+/* MENÜ GOMB */
+.menu-toggle {
+  border: 1px solid var(--border);
+  background: var(--panel-soft);
+  color: var(--text);
+  border-radius: 999px;
+  padding: 6px 10px;
+  font-size: 1rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
 
-  border-radius: 16px;
+.menu-toggle:hover {
+  background: #020617;
+}
 
+/* OLDALSÓ MENÜ (SLIDE-IN) */
+.side-menu {
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: 84%;
+  max-width: 360px;
+  height: 100vh;
+  background: radial-gradient(circle at top, #020617 0, #020617 60%);
+  border-left: 1px solid var(--border);
+  box-shadow: -24px 0 60px rgba(0, 0, 0, 0.85);
+  padding: 16px 16px 18px;
+  display: flex;
+  flex-direction: column;
+  transform: translateX(100%);
+  transition: transform 0.3s ease;
+  z-index: 40;
+}
+
+/* JS nyitja/zárja */
+.side-menu.open,
+.side-menu[aria-hidden="false"] {
+  transform: translateX(0);
+}
+
+/* FEJLÉC A MENÜBEN */
+.side-menu-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.menu-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.menu-label {
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+.menu-close {
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: #020617;
+  color: var(--text);
+  width: 30px;
+  height: 30px;
+  font-size: 1.3rem;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.menu-close:hover {
+  background: #111827;
+}
+
+/* NYELVVÁLASZTÓ BLOKK */
+.menu-lang {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 4px 0 14px;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+.lang-btn {
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  padding: 4px 10px;
+  background: transparent;
+  color: var(--muted);
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+
+.lang-btn.active {
+  background: var(--accent-soft);
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
+/* MENÜ LISTA / ELEMEK */
+.menu-list {
+  overflow-y: auto;
+  flex: 1;
+}
+
+.menu-list li {
+  margin-bottom: 8px;
+}
+
+/* KÁRTYASZERŰ MENÜSOROK */
+.menu-link {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border-radius: var(--radius-md);
+  border: 1px solid #263249;
+  background: #091325;
+  color: var(--text);
+  padding: 10px 12px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  text-align: left;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.55);
+}
+
+.menu-link .icon {
+  width: 1.5rem;
+  text-align: center;
+}
+
+/* JOGI BLOKK */
+.menu-link.jogi {
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.jogi-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.jogi-sub {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  width: 100%;
+}
+
+.jogi-sub a {
+  font-size: 0.82rem;
+  color: var(--accent);
+  text-decoration: none;
+}
+
+.jogi-sub a:hover {
+  text-decoration: underline;
+}
+
+.menu-note {
+  font-size: 0.8rem;
+  color: var(--muted);
+  margin-top: 6px;
+}
+
+/* =========================
+   MODÁLOK
+   ========================= */
+.modal {
+  position: fixed;
+  inset: 0;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  background: var(--overlay);
+  z-index: 50;
   padding: 16px;
+}
 
-  backdrop-filter: blur(3px);
+/* JS teszi aktívvá */
+.modal.active,
+.modal[aria-hidden="false"] {
+  display: flex;
+}
+
+.modal-dialog {
+  background: #020617;
+  border-radius: var(--radius-xl);
+  border: 1px solid var(--border);
+  padding: 16px 18px 18px;
+  max-width: 520px;
+  width: 100%;
+  max-height: 85vh;
+  overflow: auto;
+  box-shadow: var(--shadow-soft);
+}
+/* =========================
+   SÚGÓ (HELP MODAL) – TIPOGRÁFIA RENDSZER
+   ========================= */
+
+#helpModal .modal-dialog.help-modal {
+  /* egységes alap */
+  line-height: 1.6;
+  letter-spacing: 0.2px;
+}
+
+#helpModal .modal-dialog.help-modal h2 {
+  /* FŐCÍM: középre + “lélegzet” */
+  text-align: center;
+  margin: 8px 0 18px; /* ez adja az 1-2 “enter” érzetet */
+  font-size: 26px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+#helpModal .modal-dialog.help-modal h3 {
+  /* FŐBB FEJEZETCÍMEK: egységes nagy */
+  margin: 22px 0 8px;
+  font-size: 18px;
+  font-weight: 800;
+}
+
+#helpModal .modal-dialog.help-modal h4 {
+  /* ALFEJEZET: kicsit kisebb, de még cím */
+  margin: 14px 0 6px;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+#helpModal .modal-dialog.help-modal p,
+#helpModal .modal-dialog.help-modal li,
+#helpModal .modal-dialog.help-modal .tip {
+  /* SZÖVEG: minden ugyanolyan alapméret */
+  font-size: 15px;
+}
+
+#helpModal .modal-dialog.help-modal ul {
+  margin: 8px 0 10px;
+  padding-left: 18px;
+}
+
+/* =========================
+   SÚGÓ – KÜLÖN KINÉZET
+   ========================= */
+#helpModal .modal-dialog.help-modal {
+  background: linear-gradient(
+    180deg,
+    #0b4a6f 0%,
+    #0a3f5e 40%,
+    #061e33 100%
+  );
+  color: #e0f2fe;
+  max-width: 800px;
+}
+/* =========================
+   SÚGÓ – tipográfia és tagolás
+   ========================= */
+#helpModal .modal-dialog.help-modal h2 {
+  margin: 0 0 10px;
+  font-size: 22px;
+  letter-spacing: 0.2px;
+  color: #e0f2fe;
+}
+
+#helpModal .modal-dialog.help-modal h3 {
+  margin: 18px 0 8px;
+  font-size: 16px;
+  color: #bae6fd;
+}
+
+#helpModal .modal-dialog.help-modal h4 {
+  margin: 14px 0 6px;
+  font-size: 14px;
+  color: #c7f0ff;
+}
+
+#helpModal .modal-dialog.help-modal p,
+#helpModal .modal-dialog.help-modal li {
+  color: rgba(224, 242, 254, 0.92);
+  line-height: 1.65;
+}
+
+#helpModal .modal-dialog.help-modal ul {
+  margin: 8px 0 10px;
+  padding-left: 18px;
+}
+
+#helpModal .modal-dialog.help-modal li {
+  margin: 6px 0;
+}
+/* =========================
+   SÚGÓ – szövegmélység, ritmus
+   ========================= */
+
+/* Bekezdések kapjanak "lélegzetet" */
+#helpModal .modal-dialog.help-modal p {
+  padding-left: 6px;
+  border-left: 2px solid rgba(125, 211, 252, 0.25);
+  margin-bottom: 12px;
+}
+
+/* Listák kicsit kártyásabbak */
+#helpModal .modal-dialog.help-modal ul {
+  background: rgba(15, 23, 42, 0.35);
+  border-radius: 12px;
+  padding: 10px 14px 10px 26px;
+  margin: 10px 0 14px;
+}
+
+/* Listaelemek elkülönítése */
+#helpModal .modal-dialog.help-modal li {
+  position: relative;
+}
+
+/* Tip box – finom kiemelés */
+#helpModal .modal-dialog.help-modal .tip {
+  background: linear-gradient(
+    180deg,
+    rgba(56, 189, 248, 0.25),
+    rgba(56, 189, 248, 0.15)
+  );
+  border-left: 4px solid #38bdf8;
+  border-radius: 12px;
+  padding: 10px 14px;
+  margin: 14px 0;
+}
+
+/* Szekciók közti „lélegzet” */
+#helpModal .modal-dialog.help-modal h3 {
+  padding-top: 10px;
+}
+/* =========================
+   SÚGÓ – TÉNYLEGESEN ÉRVÉNYESÜLŐ SZÖVEGSZÍNEK
+   ========================= */
+
+#helpModal .modal-dialog {
+  color: #EDEDED; /* MELEG, SEMLEGES – NEM KÉK */
+  line-height: 1.7;
+}
+
+/* Fő cím */
+#helpModal .modal-dialog h2 {
+  font-size: 22px;
+  font-weight: 700;
+  text-align: center;
+  color: #B9E6FF;
+  margin-bottom: 26px;
+}
+
+/* Fejezetcímek */
+#helpModal .modal-dialog h3 {
+  font-size: 18px;
+  font-weight: 600;
+  color: #9FD4F0;
+  margin-top: 30px;
+  margin-bottom: 8px;
+}
+
+/* Alfejezetek */
+#helpModal .modal-dialog h4 {
+  font-size: 16px;
+  font-weight: 600;
+  color: #D8EDF8;
+  margin-top: 18px;
+  margin-bottom: 6px;
+}
+
+/* Bekezdések */
+#helpModal .modal-dialog p {
+  font-size: 14.5px;
+  color: #EDEDED;
+  margin-bottom: 12px;
+}
+
+/* Listák */
+#helpModal .modal-dialog li {
+  font-size: 14.5px;
+  color: #EDEDED;
+  margin-bottom: 6px;
+}
+
+/* Tipp doboz */
+#helpModal .modal-dialog .tip {
+  font-size: 14px;
+  color: #F7FAFC;
+  background: rgba(56, 189, 248, 0.18);
+  border-left: 4px solid #7DD3FC;
+}
+
+
+.modal-dialog h2 {
+  margin: 0 0 8px;
+  font-size: 1.25rem;
+}
+
+.modal-dialog p {
+  margin: 0 0 12px;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  color: var(--muted);
+}
+
+/* CHECKBOX / FORM ELEMEK */
+.checkbox {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 0.85rem;
+  color: var(--muted);
+  margin: 10px 0 14px;
+}
+
+.checkbox a {
+  color: var(--accent);
+}
+
+.checkbox input[type="checkbox"] {
+  margin-top: 2px;
+}
+
+/* FORM CSOPORTOK */
+.form-group {
+  margin-bottom: 8px;
+}
+
+input[type="text"],
+input[type="email"],
+input[type="password"],
+textarea {
+  width: 100%;
+  border-radius: 14px;
+  border: 1px solid var(--border);
+  background: #020617;
+  color: var(--text);
+  padding: 8px 10px;
+  font-size: 0.9rem;
+}
+
+textarea {
+  min-height: 90px;
+  resize: vertical;
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: #6b7280;
+}
+
+/* MODÁL GOMB VARIÁNSOK (btn alap az app-ból jön) */
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.btn.primary {
+  border: 1px solid var(--accent);
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+.btn.primary.disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.btn.ghost {
+  background: transparent;
+  border: 1px solid rgba(56, 189, 248, 0.3);
+}
+
+.btn.danger {
+  background: #b91c1c;
+  color: #fff;
+}
+
+/* =========================
+   TÚRAJELZÉSEK MODÁL
+   ========================= */
+
+.trail-modal {
+  max-width: 640px;
+}
+
+.trail-intro,
+.trail-text {
+  font-size: 0.9rem;
+  color: var(--muted);
+  margin-bottom: 0.7rem;
+}
+
+.trail-subtitle {
+  margin-top: 1.2rem;
+  margin-bottom: 0.4rem;
+  font-size: 1rem;
+  color: var(--text);
+  border-left: 3px solid var(--accent);
+  padding-left: 8px;
+}
+
+.trail-card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 0.7rem;
+  margin-bottom: 0.8rem;
+}
+
+.trail-card {
+  background: #020617;
+  border-radius: 14px;
+  border: 1px solid var(--border);
+  padding: 0.6rem 0.7rem;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+}
+
+.trail-card-title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.25rem;
+}
+
+.trail-card-title h4 {
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--text);
+}
+
+.trail-card p {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+.trail-list {
+  margin: 0.4rem 0 0.8rem;
+  padding-left: 1.1rem;
+  font-size: 0.9rem;
+  color: var(--muted);
+}
+
+/* Itt visszakapod a pöttyöket, kék színnel */
+.trail-list li {
+  list-style: disc;
+  margin-bottom: 0.3rem;
+}
+.trail-list li::marker {
+  content: "• ";
+  color: var(--accent);
+}
+
+.trail-tip {
+  background: rgba(37, 99, 235, 0.06);
+  border-left: 3px solid var(--accent);
+  border-radius: 10px;
+  padding: 0.55rem 0.7rem;
+  font-size: 0.85rem;
+  color: var(--muted);
+  margin-bottom: 0.4rem;
+}
+
+/* TURISTAJEL IKONOK – sötét témára hangolva */
+
+.mark {
+  width: 52px;
+  height: 34px;
+  border-radius: 4px;
+  background: #ffffff;
+  border: 2px solid #e5e7eb;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+  position: relative;
+  flex-shrink: 0;
+}
+
+/* alapsáv színek */
+.mark-blue-sav::before,
+.mark-red-sav::before,
+.mark-green-sav::before,
+.mark-yellow-sav::before {
+  content: "";
+  position: absolute;
+  left: 5px;
+  right: 5px;
+  top: 50%;
+  height: 9px;
+  transform: translateY(-50%);
+}
+
+.mark-blue-sav::before {
+  background: #3b82f6;
+}
+.mark-red-sav::before {
+  background: #ef4444;
+}
+.mark-green-sav::before {
+  background: #22c55e;
+}
+.mark-yellow-sav::before {
+  background: #facc15;
+}
+
+/* formák */
+.mark-triangle::before {
+  content: "";
+  position: absolute;
+  left: 11px;
+  right: 11px;
+  bottom: 7px;
+  border-left: 9px solid transparent;
+  border-right: 9px solid transparent;
+  border-bottom: 14px solid #3b82f6;
+}
+
+.mark-cross::before,
+.mark-cross::after {
+  content: "";
+  position: absolute;
+  background: #ef4444;
+}
+
+.mark-cross::before {
+  left: 50%;
+  top: 6px;
+  bottom: 6px;
+  width: 6px;
+  transform: translateX(-50%);
+}
+
+.mark-cross::after {
+  top: 50%;
+  left: 6px;
+  right: 6px;
+  height: 6px;
+  transform: translateY(-50%);
+}
+
+.mark-square::before {
+  content: "";
+  position: absolute;
+  inset: 7px 12px;
+  border: 3px solid #3b82f6;
+  box-sizing: border-box;
+}
+
+.mark-circle::before {
+  content: "";
+  position: absolute;
+  inset: 7px 13px;
+  border-radius: 50%;
+  border: 3px solid #22c55e;
+  box-sizing: border-box;
+}
+
+.mark-omega::before {
+  content: "Ω";
+  position: absolute;
+  inset: 4px 0 0 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  color: #38bdf8;
+  font-size: 18px;
+}
+
+.mark-ruin::before {
+  content: "";
+  position: absolute;
+  left: 10px;
+  right: 16px;
+  bottom: 9px;
+  top: 14px;
+  border: 3px solid #a16207;
+  border-top: 6px solid #a16207;
+  box-sizing: border-box;
+}
+
+.mark-ruin::after {
+  content: "";
+  position: absolute;
+  right: 10px;
+  bottom: 9px;
+  width: 4px;
+  top: 18px;
+  background: #a16207;
+}
+
+.mark-loop::before,
+.mark-loop::after {
+  content: "";
+  position: absolute;
+  border-radius: 999px;
+  border: 2px solid #3b82f6;
+}
+
+.mark-loop::before {
+  left: 8px;
+  top: 11px;
+  right: 22px;
+  bottom: 11px;
+}
+
+.mark-loop::after {
+  right: 8px;
+  top: 11px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #3b82f6;
+  border: none;
+}
+
+/* =========================
+   VIHARJELZÉS MODÁL
+   ========================= */
+
+.storm-modal {
+  max-width: 720px;
+}
+
+.storm-intro {
+  font-size: 0.9rem;
+  color: var(--muted);
+  margin-bottom: 0.8rem;
+}
+
+.storm-subtitle {
+  margin-top: 1.2rem;
+  margin-bottom: 0.5rem;
+  font-size: 1rem;
+  color: var(--text);
+  border-left: 3px solid var(--accent);
+  padding-left: 8px;
+}
+
+#stormModal .signal-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 0.8rem;
+  margin-top: 0.6rem;
+  margin-bottom: 0.6rem;
+}
+
+#stormModal .signal {
+  background: #0a1324;
+  border-radius: 14px;
+  padding: 0.9rem 0.9rem 0.8rem;
+  text-align: center;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.45);
+  border: 1px solid #1f2937;
+}
+
+#stormModal .signal h4 {
+  margin: 0.6rem 0 0.3rem;
+  color: #e5e7eb;
+  font-size: 0.95rem;
+}
+
+#stormModal .signal p {
+  margin: 0;
+  font-size: 0.86rem;
+  color: #cbd5f5;
+}
+
+/* Fénytorony ikon */
+#stormModal .beacon-wrap {
+  display: flex;
+  justify-content: center;
+  margin-top: 0.2rem;
+}
+
+#stormModal .beacon {
+  width: 32px;
+  height: 54px;
+  position: relative;
+  border-radius: 4px 4px 6px 6px;
+  background: linear-gradient(to bottom, #9ca3af, #374151);
+  margin-top: 0.4rem;
+}
+
+/* talapzat */
+#stormModal .beacon::after {
+  content: "";
+  position: absolute;
+  left: -6px;
+  right: -6px;
+  bottom: -6px;
+  height: 6px;
+  background: rgba(0, 0, 0, 0.35);
+  border-radius: 4px;
+}
+
+/* lámpafej (alap) */
+#stormModal .beacon-head {
+  position: absolute;
+  top: -10px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #e5e7eb;
+  box-shadow: 0 0 6px rgba(255, 255, 255, 0.9);
+  opacity: 0.9;
+}
+
+/* állapotok – lassú/gyors villogás */
+#stormModal .beacon-head.slow {
+  background: #facc15;
+  animation: slowBlink 2s infinite;
+}
+
+#stormModal .beacon-head.fast {
+  background: #f97373;
+  animation: fastBlink 0.6s infinite;
+}
+
+@keyframes slowBlink {
+  0%,
+  80%,
+  100% {
+    opacity: 0.2;
+  }
+  30%,
+  50% {
+    opacity: 1;
+  }
+}
+
+@keyframes fastBlink {
+  0%,
+  50% {
+    opacity: 0.15;
+  }
+  25%,
+  75% {
+    opacity: 1;
+  }
+}
+
+/* Listák a "Mire figyelj?" részben */
+.storm-list {
+  margin: 0.4rem 0 0.9rem;
+  padding-left: 1.1rem;
+  font-size: 0.9rem;
+  color: var(--muted);
+}
+
+.storm-list li {
+  list-style: disc;
+  margin-bottom: 0.35rem;
+}
+
+.storm-list li::marker {
+  content: "• ";
+  color: var(--accent);
+}
+
+/* BalatonGo tippek – világosabb doboz */
+.storm-tip {
+  background: rgba(37, 99, 235, 0.1);
+  border-left: 3px solid var(--accent);
+  border-radius: 10px;
+  padding: 0.65rem 0.8rem;
+  font-size: 0.86rem;
+  color: #d1d5db;
+  margin-bottom: 0.4rem;
+}
+
+/* ===== Login / profil / kedvencek ===== */
+
+.hidden {
+  display: none !important;
+}
+
+.login-profile {
+  margin-top: 1rem;
+}
+
+.profile-line {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.profile-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(56, 189, 248, 0.16);
+  font-size: 1.2rem;
+}
+
+.profile-name {
+  font-weight: 600;
+}
+
+.profile-email {
+  font-size: 0.9rem;
+  opacity: 0.8;
+}
+
+.profile-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  margin: 0.6rem 0 1rem;
+}
+
+/* Kedvencek lista */
+
+.favorites-list {
+  list-style: none;
+  margin: 1rem 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.favorite-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.55rem 0.9rem;
+  border-radius: 999px;
+  background: rgba(15, 23, 42, 0.95);
+  font-size: 0.95rem;
+}
+
+.favorite-item span {
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.favorite-item .btn.small,
+.favorite-item .btn.danger {
+  padding: 0.35rem 0.9rem;
+  font-size: 0.85rem;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+/* === GLOBÁLIS LÁBLÉC – finom, nem türkiz csík === */
+.footer {
+  position: static;
+  width: 100%;
+  text-align: center;
+  padding: 4px 12px 8px;
+  font-size: 0.8rem;
+  color: #e5e7eb;
+  background: transparent;
+}
+
+/* === PROFIL MODÁL – Kedvencek / Beállítások felirat legyen világos === */
+.login-profile .profile-actions .btn,
+.login-profile .profile-actions .btn.ghost {
+  color: #f9fafb;
+  border-color: rgba(249, 250, 251, 0.35);
+}
+
+.login-profile .profile-actions .btn:hover,
+.login-profile .profile-actions .btn.ghost:hover {
+  background: rgba(15, 23, 42, 0.8);
+  color: #ffffff;
+}
+
+/* ==== Home copyright – opcionális, ha használod ==== */
+.home-wrap {
+  position: relative;
+}
+
+.home-copyright {
+  position: absolute;
+  left: 50%;
+  bottom: 12px;
+  transform: translateX(-50%);
+  font-size: 0.75rem;
+  color: #e5e7eb;
+  opacity: 0.8;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8);
+  pointer-events: none;
+}
+/* ==== KEDVENCEK – SÁRGA CSILLAG ===== */
+
+button.fav-toggle {
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font-size: 1.1rem;
+}
+
+button.fav-toggle.is-fav,
+.leaflet-fav-btn.is-fav {
+  color: gold;
+}
+/* =========================
+   MENÜ – FELHASZNÁLÓI SÁV
+   ========================= */
+
+.menu-userbox {
+  display: none;               /* induláskor elrejtve, JS mutatja be */
+  flex-direction: column;
+  gap: 0.25rem;
+  padding: 0.75rem 1rem 0.5rem;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.25);
+}
+
+.menu-user-main {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.menu-user-avatar {
+  width: 30px;
+  height: 30px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+  background: rgba(15, 23, 42, 0.9);
+}
+
+.menu-user-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.menu-logout {
+  align-self: flex-start;
+  margin-top: 0.1rem;
+  background: none;
+  border: none;
+  padding: 0;
+  font-size: 0.8rem;
+  color: #94a3b8;
+  cursor: pointer;
+}
+
+.menu-logout:hover {
+  color: #fca5a5;
+  text-decoration: underline;
+}
+#menuUserBox,
+#menuUserBox * {
+  cursor: pointer;
+}
+/* Bahart-forrás alapból rejtve */
+
+.schedule-source {
+
+  display: none;
+
+  font-size: 0.85rem;
+
+  margin-top: 0.75rem;
+
+  opacity: 0.9;
 
 }
 
-.view[data-route="tours"] .detail-title,
+/* Csak akkor látszódjon, ha a menetrend nézet aktív */
 
-.view[data-route="tours"] .detail-sub,
+.view[data-route="schedule"].active .schedule-source {
 
-.view[data-route="tours"] .detail-body p{
+  display: block;
+}
+/* ===== VIEW ALAP – csak az .active látszik ===== */
+.view {
+  display: none;
+}
 
-  text-shadow: 0 2px 12px rgba(0,0,0,.7);
+.view.active {
+  display: block;
+}
+/* =========================
+   CSV INTRO KÁRTYA SZÉPÍTÉS
+   Csak a detail oldalon
+   ========================= */
 
+/* hely (Ábrahámhegy, Nord) */
+#view-detail .detail-sub {
+  font-size: 15px;
+  color: rgba(255,255,255,0.75);
+  margin-bottom: 10px;
+  letter-spacing: 0.2px;
+}
+
+/* a "Poi / Beschreibung" címkék */
+#view-detail .detail-label {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: rgba(255,255,255,0.55);
+  margin-bottom: 8px;
+}
+
+/* maga az INTRO szöveg (EZ VOLT CSÚNYA) */
+#view-detail .detail-text {
+  background: rgba(255,255,255,0.92);
+  color: #111;
+  border-radius: 18px;
+  padding: 14px 16px;
+  font-size: 16px;
+  line-height: 1.55;
+  box-shadow: 0 12px 28px rgba(0,0,0,0.25);
+}
+
+/* idézőjelek eltüntetése vizuálisan */
+#view-detail .detail-text::before,
+#view-detail .detail-text::after {
+  content: "";
+}
+/* =========================
+   DETAIL CSV KÁRTYA – "ILYENRE AKAROM" alap (1 lépés)
+   Csak a #view-detail oldalon
+   ========================= */
+
+/* 1) A teljes detail-card legyen EGY világos kártya */
+#view-detail article#detail-card.detail-card{
+  max-width: 680px;
+  margin: 22px auto 0;
+  padding: 18px 18px 16px;
+  border-radius: 26px;
+  background: rgba(255,255,255,0.92);
+  border: 1px solid rgba(0,0,0,0.08);
+  box-shadow: 0 16px 40px rgba(0,0,0,0.28);
+}
+
+/* 2) A belső blokkok ne külön "dobozok" legyenek */
+#view-detail #detail-card .detail-head,
+#view-detail #detail-card .detail-chips,
+#view-detail #detail-card .detail-section{
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+  border-radius: 0;
+  padding: 0;
+  margin: 0;
+}
+
+/* 3) Cím + hely */
+#view-detail #detail-card .detail-title{
+  margin: 0 0 8px;
+  font-size: 28px;
+  line-height: 1.15;
+  color: #111;
+  letter-spacing: .2px;
+}
+
+#view-detail #detail-card .detail-sub{
+  margin: 0 0 12px;
+  font-size: 16px;
+  color: rgba(0,0,0,0.60);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* kis "pin" ikon a hely elé (mint a mintaképen) */
+#view-detail #detail-card .detail-sub::before{
+  content: "📍";
+  font-size: 16px;
+  opacity: 0.8;
+}
+
+/* 4) Chip sor (mint a mintaképen) */
+#view-detail #detail-card .detail-chips{
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 10px 0 14px;
+}
+
+/* általános chip */
+#view-detail #detail-card .chip{
+  display: inline-flex;
+  align-items: center;
+  padding: 8px 14px;
+  border-radius: 999px;
+  font-size: 14px;
+  font-weight: 700;
+  border: 1px solid rgba(0,0,0,0.10);
+  background: rgba(0,0,0,0.06);
+  color: rgba(0,0,0,0.78);
+}
+
+/* 1. chip sötétebb (mint "Szikla") */
+#view-detail #detail-card .chip:nth-child(1){
+  background: rgba(0,0,0,0.74);
+  color: rgba(255,255,255,0.92);
+  border-color: rgba(0,0,0,0.20);
+}
+
+/* 2. chip zöldes (mint "Könnyű") */
+#view-detail #detail-card .chip:nth-child(2){
+  background: rgba(60, 180, 90, 0.88);
+  color: rgba(255,255,255,0.95);
+  border-color: rgba(0,0,0,0.08);
+}
+
+/* 5) Elválasztó vonal a chip-ek alatt */
+#view-detail #detail-card .detail-chips::after{
+  content: "";
+  display: block;
+  width: 100%;
+  height: 1px;
+  margin-top: 12px;
+  background: rgba(0,0,0,0.12);
+}
+
+/* 6) Leírás blokk: világos "szövegdoboz" a kártyán belül */
+#view-detail #detail-card .detail-label{
+  margin-top: 12px;
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: rgba(0,0,0,0.45);
+}
+
+#view-detail #detail-card .detail-text{
+  margin-top: 10px;
+  padding: 14px 14px;
+  border-radius: 18px;
+  background: rgba(0,0,0,0.06);
+  border: 1px solid rgba(0,0,0,0.10);
+  color: rgba(0,0,0,0.78);
+  font-size: 16px;
+  line-height: 1.55;
+}
+
+/* 7) mobil finomhangolás */
+@media (max-width: 480px){
+  #view-detail article#detail-card.detail-card{
+    margin-top: 16px;
+    padding: 16px 14px 14px;
+    border-radius: 24px;
+  }
+  #view-detail #detail-card .detail-title{
+    font-size: 24px;
+  }
+}
+@keyframes helpFloatIn {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+#helpModal[aria-hidden="false"] .modal-dialog.help-modal {
+  animation: helpFloatIn 420ms ease-out both;
+}
+/* =========================
+   HELP MODAL – SZÖVEGSZÍN RESET (VÉGÉRE TEDD!)
+   ========================= */
+
+/* 1) Alapszín: minden elem a helpModalon belül (felülírja a kék öröklést) */
+#helpModal,
+#helpModal .modal-content,
+#helpModal .modal-body,
+#helpModal .modal-body * {
+  color: #EDEDED !important;
+  line-height: 1.7;
+}
+
+/* 2) Címek – külön színek */
+#helpModal h2 {
+  color: #B9E6FF !important;
+  font-size: 22px;
+  font-weight: 700;
+  text-align: center;
+  margin-bottom: 26px;
+}
+
+#helpModal h3 {
+  color: #9FD4F0 !important;
+  font-size: 18px;
+  font-weight: 600;
+  margin-top: 30px;
+  margin-bottom: 8px;
+}
+
+#helpModal h4 {
+  color: #D8EDF8 !important;
+  font-size: 16px;
+  font-weight: 600;
+  margin-top: 18px;
+  margin-bottom: 6px;
+}
+
+/* 3) Bekezdés + lista – biztosan szürke marad */
+#helpModal p,
+#helpModal li {
+  color: #d6dbe0 !important;
+  font-size: 14.5px;
+}
+
+/* 4) Linkek (ha vannak) – ne legyen rikító bootstrap-kék */
+#helpModal a {
+  color: #B9E6FF !important;
+  text-decoration: underline;
+}
+
+/* 5) Tipp doboz */
+#helpModal .tip {
+  color: #F7FAFC !important;
+  background: rgba(56, 189, 248, 0.18);
+  border-left: 4px solid #7DD3FC;
+  font-size: 14px;
+}
+/* =========================
+   MODAL-NEUTRAL – SZÖVEGSZÍN FIX (VÉGÉRE!)
+   ========================= */
+
+.modal.modal-neutral,
+.modal.modal-neutral .modal-content,
+.modal.modal-neutral .modal-body,
+.modal.modal-neutral .modal-body * {
+  color: #EDEDED !important;
+}
+
+/* Címek */
+.modal.modal-neutral h2 { color: #B9E6FF !important; }
+.modal.modal-neutral h3 { color: #9FD4F0 !important; }
+.modal.modal-neutral h4 { color: #D8EDF8 !important; }
+
+/* Linkek se legyenek “bootstrap-kékek” */
+.modal.modal-neutral a {
+  color: #B9E6FF !important;
+  text-decoration: underline;
+}
+.modal {
+  outline: 6px solid red !important;
+}
+/* =========================
+   SÚGÓ MODAL – OLVASHATÓ SZÍNEK (VÉGÉRE!)
+   ========================= */
+
+#helpModal .modal-dialog.help-modal {
+  color: #EDEDED !important;
+  line-height: 1.7;
+}
+
+/* Biztosítsuk, hogy a belső elemek se örököljenek kéket */
+#helpModal .modal-dialog.help-modal p,
+#helpModal .modal-dialog.help-modal li {
+  color: #EDEDED !important;
+}
+
+#helpModal .modal-dialog.help-modal h2 {
+  color: #B9E6FF !important;
+}
+
+#helpModal .modal-dialog.help-modal h3 {
+  color: #9FD4F0 !important;
+}
+
+#helpModal .modal-dialog.help-modal h4 {
+  color: #D8EDF8 !important;
+}
+
+#helpModal .modal-dialog.help-modal a {
+  color: #B9E6FF !important;
+  text-decoration: underline;
+}
+
+/* Tipp doboz */
+#helpModal .modal-dialog.help-modal .tip {
+  color: #F7FAFC !important;
+  background: rgba(56, 189, 248, 0.18);
+  border-left: 4px solid #7DD3FC;
+}
+/* =========================
+
+   SÚGÓ MODAL – VÉGSŐ SZÍN RESET (LEGALSÓ BLOKK)
+
+   ========================= */
+
+/* 1) MINDEN szöveg a súgóban legyen szürke (kék leverése) */
+
+#helpModal,
+
+#helpModal * {
+
+  color: #EDEDED !important;
+
+}
+
+/* 2) Címek kapjanak külön (szép) árnyalatot */
+
+#helpModal h2 { color: #B9E6FF !important; }
+
+#helpModal h3 { color: #9FD4F0 !important; }
+
+#helpModal h4 { color: #D8EDF8 !important; }
+
+/* 3) Linkek */
+
+#helpModal a {
+
+  color: #B9E6FF !important;
+
+  text-decoration: underline;
+
+}
+
+/* 4) Tipp doboz */
+
+#helpModal .tip {
+
+  color: #F7FAFC !important;
+
+  background: rgba(56, 189, 248, 0.18);
+
+  border-left: 4px solid #7DD3FC;
+
+}
+
+/* =========================
+
+   HELP MODAL – OLVASHATÓ, NEM EGYSZÍNŰ (LEGALSÓ BLOKK)
+
+   ========================= */
+
+/* Modal háttér maradhat kékes, de picit mélyebb/kontrasztosabb */
+
+#helpModal .modal-dialog.help-modal {
+
+  background: linear-gradient(180deg, rgba(7, 44, 63, 0.92), rgba(7, 44, 63, 0.82)) !important;
+
+  border: 1px solid rgba(185, 230, 255, 0.18);
+
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.45);
+
+}
+
+/* Alapszöveg: meleg világosszürke (nem kékes) */
+
+#helpModal,
+
+#helpModal * {
+
+  color: #EAE6DF !important;  /* melegebb, “papírosabb” szürke */
+
+}
+
+/* Címek: világos, de nem neon-kék */
+
+#helpModal h2 {
+
+  color: #F3FBFF !important;
+
+  letter-spacing: 0.06em;
+
+  text-transform: uppercase;
+
+}
+
+#helpModal h3 {
+
+  color: #EAF7FF !important;
+
+  opacity: 0.95;
+
+  margin-top: 26px;
+
+  padding-top: 14px;
+
+  border-top: 1px solid rgba(255, 255, 255, 0.10);
+
+}
+
+#helpModal h4 {
+
+  color: #F1FBFF !important;
+
+  opacity: 0.92;
+
+}
+
+/* Bekezdések: picit kisebb “kék fény”, jobb olvashatóság */
+
+#helpModal p,
+
+#helpModal li {
+
+  color: #EAE6DF !important;
+
+  opacity: 0.98;
+
+}
+
+/* A bal oldali “idézetcsík” (ha van) legyen finomabb, ne kék ordító */
+
+#helpModal p {
+
+  border-left: 3px solid rgba(243, 251, 255, 0.18);
+
+  padding-left: 12px;
+
+}
+
+/* Tipp doboz: ne legyen ugyanaz a kék, kapjon saját karaktert */
+
+#helpModal .tip {
+
+  color: #FFF9EF !important;
+
+  background: rgba(255, 241, 214, 0.10) !important; /* enyhe meleg tónus */
+
+  border-left: 4px solid rgba(255, 214, 102, 0.55) !important;
+
+}
+
+/* Gomb */
+
+#helpModal button,
+
+#helpModal .btn {
+
+  color: #F3FBFF !important;
+
+  border-color: rgba(185, 230, 255, 0.35) !important;
+
+}
+/* =========================
+   SÚGÓ MODAL – HÁTTÉR EGYSÉGESÍTÉS (CSAK HÁTTÉR)
+   ========================= */
+
+#helpModal .modal-dialog.help-modal {
+  background: rgba(8, 28, 40, 0.92) !important; /* sötétebb kék, egységes */
+  border: 1px solid rgba(255, 255, 255, 0.10) !important;
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.45) !important;
+}
+
+/* ha a belső konténer külön háttérrel futna, azt is egységesítjük */
+#helpModal .modal-dialog.help-modal .help-body,
+#helpModal .modal-dialog.help-modal .modal-body,
+#helpModal .modal-dialog.help-modal .content {
+  background: transparent !important;
+}
+/* =========================
+   SÚGÓ – VÉGLEGES HÁTTÉR
+   ========================= */
+
+/* teljes képernyős sötét overlay */
+#helpModal {
+  background: rgba(5, 15, 25, 0.75) !important;
+  backdrop-filter: blur(2px);
+}
+
+/* maga a súgó doboz */
+#helpModal .modal-dialog.help-modal {
+  background: linear-gradient(
+    180deg,
+    rgba(12, 32, 48, 0.95),
+    rgba(8, 24, 36, 0.95)
+  ) !important;
+  border: 1px solid rgba(255, 255, 255, 0.10) !important;
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.45) !important;
+}
+
+/* =========================================================
+   HELP MODAL – IKONOK + LISTAJELEK + ZÁRSZÓ + COPYRIGHT (EGYBEN)
+   Cél: stabil ikon-sorok, a 3 felsorolás kapjon "bulletet",
+        zárszónak ikon, alul vékony csík + © szöveg.
+   ========================================================= */
+
+/* 0) Biztonság: semmi régi absolute/padding trükk ne hasson */
+#helpModal h3,
+#helpModal h4,
+#helpModal .tip,
+#helpModal li[data-i18n="help.safety.trail"],
+#helpModal li[data-i18n="help.safety.storm"]{
+  padding-left: 0 !important;
+  position: static !important;
+}
+
+/* 1) H3/H4: ikon + szöveg egy sorban */
+#helpModal h3,
+#helpModal h4{
+  display: flex !important;
+  align-items: center !important;
+  gap: 10px !important;
+  margin: 18px 0 10px !important;
+}
+
+/* 2) Címsor ikon doboz – fix méret, nincs badge */
+#helpModal h3::before,
+#helpModal h4::before{
+  content: "" !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+
+  width: 26px !important;
+  min-width: 26px !important;
+  height: 26px !important;
+
+  line-height: 1 !important;
+  font-size: 20px !important;
+
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  border-radius: 0 !important;
+
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+/* 3) TIP doboz: ikon + szöveg egy sorban */
+#helpModal .tip{
+  display: flex !important;
+  align-items: flex-start !important;
+  gap: 10px !important;
+}
+#helpModal .tip::before{
+  content: "💡" !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+
+  width: 26px !important;
+  min-width: 26px !important;
+  height: 26px !important;
+
+  line-height: 1 !important;
+  font-size: 20px !important;
+
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  border-radius: 0 !important;
+
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+/* 4) Csak a 2 “biztonság” listás sor kap külön ikont */
+#helpModal li[data-i18n="help.safety.trail"],
+#helpModal li[data-i18n="help.safety.storm"]{
+  display: flex !important;
+  align-items: flex-start !important;
+  gap: 10px !important;
+  margin: 8px 0 !important;
+}
+#helpModal li[data-i18n="help.safety.trail"]::before,
+#helpModal li[data-i18n="help.safety.storm"]::before{
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+
+  width: 26px !important;
+  min-width: 26px !important;
+  height: 26px !important;
+
+  line-height: 1 !important;
+  font-size: 20px !important;
+
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  border-radius: 0 !important;
+
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+/* turistajelzés: “zászló” */
+#helpModal li[data-i18n="help.safety.trail"]::before{
+  content: "" !important;
+  width: 24px !important;
+  min-width: 24px !important;
+  height: 18px !important;
+  margin-top: 3px !important;
+
+  border-radius: 4px !important;
+  background: linear-gradient(90deg,
+    rgba(255,255,255,0.95) 0%,
+    rgba(255,255,255,0.95) 40%,
+    rgba(125,211,252,0.95) 40%,
+    rgba(125,211,252,0.95) 60%,
+    rgba(255,255,255,0.95) 60%,
+    rgba(255,255,255,0.95) 100%
+  ) !important;
+  box-shadow: 0 0 0 1px rgba(0,0,0,0.25) !important;
+}
+
+/* vihar: ⚡ */
+#helpModal li[data-i18n="help.safety.storm"]::before{
+  content: "⚡" !important;
+}
+
+/* 5) H3 ikonok (data-i18n alapján) */
+#helpModal h3[data-i18n="help.home.title"]::before{ content:"🏠" !important; }
+#helpModal h3[data-i18n="help.weather.title"]::before{ content:"🌦️" !important; }
+#helpModal h3[data-i18n="help.ferry.title"]::before{ content:"⛴️" !important; }
+#helpModal h3[data-i18n="help.hikes.title"]::before{ content:"🧭" !important; }
+#helpModal h3[data-i18n="help.menu.title"]::before{ content:"☰" !important; }
+#helpModal h3[data-i18n="help.safety.title"]::before{ content:"🌩️" !important; }
+#helpModal h3[data-i18n="help.language.title"]::before{ content:"🌐" !important; }
+#helpModal h3[data-i18n="help.legal.title"]::before{ content:"📄" !important; }
+#helpModal h3[data-i18n="help.contact.title"]::before{ content:"💬" !important; }
+
+/* 6) Zárszó ikon (kérésed: szív) */
+#helpModal h3[data-i18n="help.outro.title"]::before{ content:"🩵" !important; }
+
+/* 7) H4 ikonok */
+#helpModal h4[data-i18n="help.login.title"]::before{ content:"👤" !important; }
+#helpModal h4[data-i18n="help.favorites.title"]::before{ content:"⭐" !important; }
+#helpModal h4[data-i18n="help.settings.title"]::before{ content:"⚙️" !important; }
+
+/* 8) A 3 “Kezdőlap” alatti felsorolás kapjon jelölőt (bullet) */
+#helpModal li[data-i18n="help.home.item.weather"],
+#helpModal li[data-i18n="help.home.item.ferry"],
+#helpModal li[data-i18n="help.home.item.hikes"]{
+  list-style: none !important;
+  display: flex !important;
+  align-items: flex-start !important;
+  gap: 10px !important;
+  margin: 8px 0 !important;
+}
+#helpModal li[data-i18n="help.home.item.weather"]::before,
+#helpModal li[data-i18n="help.home.item.ferry"]::before,
+#helpModal li[data-i18n="help.home.item.hikes"]::before{
+  content: "•" !important;          /* egyszerű, elegáns jelölő */
+  width: 26px !important;
+  min-width: 26px !important;
+  height: 26px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  font-size: 22px !important;
+  line-height: 1 !important;
+  opacity: 0.9 !important;
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+}
+
+/* 9) Alul vékony csík + copyright szöveg a gombok alá */
+#helpModal .modal-actions{
+  position: relative !important;
+  padding-bottom: 34px !important; /* hely a © szövegnek */
+  margin-top: 18px !important;
+}
+#helpModal .modal-actions::after{
+  content: var(--help-copyright, "© 2025 BalatonGo") !important;
+  position: absolute !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  padding-top: 10px !important;
+  border-top: 1px solid rgba(203,233,248,0.35) !important;
+  text-align: center !important;
+  font-size: 12px !important;
+  opacity: 0.85 !important;
+}
+
+/* =========================
+   LOGIN – Elfelejtett jelszó link (szép, diszkrét)
+   ========================= */
+
+.login-forgot-row{
+  margin: -6px 0 10px;   /* kicsit közelebb a jelszó mezőhöz */
+  text-align: right;
+}
+
+.link-btn{
+  background: transparent;
+  border: 0;
+  padding: 0;
+  font: inherit;
+  font-size: 0.88rem;
+  color: #8fd3ff;        /* finom kék */
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  cursor: pointer;
+  opacity: 0.95;
+}
+
+.link-btn:hover{
+  opacity: 1;
+  text-decoration: none;
+}
+
+.link-btn:active{
+  transform: translateY(1px);
+}
+
+.link-btn:focus-visible{
+  outline: 2px solid rgba(143, 211, 255, 0.85);
+  outline-offset: 3px;
+  border-radius: 8px;
+}
+/* =========================
+   LOGIN – Jelszó visszaállítás panel
+   ========================= */
+
+.forgot-panel{
+  margin: 10px 0 8px;
+  padding: 12px 12px 10px;
+  border-radius: 14px;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.10);
+}
+
+.forgot-title{
+  margin: 0 0 6px;
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.forgot-sub{
+  margin: 0 0 10px;
+  opacity: 0.9;
+  line-height: 1.45;
+  font-size: 0.92rem;
+}
+
+.forgot-msg{
+  min-height: 1.2em;
+  margin: 6px 0 0;
+  font-size: 0.88rem;
+  opacity: 0.95;
+}
+
+.forgot-actions{
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+  margin-top: 10px;
+}
+.hidden { 
+  display: none !important; 
+}
+/* Forgot panel – Vissza gomb olvasható legyen */
+#forgotPasswordPanel .btn.ghost{
+  color: #E6EEF4 !important;
+  border: 1px solid rgba(230,238,244,0.35);
+}
+#forgotPasswordPanel .btn.ghost:hover{
+  border-color: rgba(143,211,255,0.55);
 }
