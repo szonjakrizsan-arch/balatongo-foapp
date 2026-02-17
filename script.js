@@ -1912,7 +1912,7 @@ right.appendChild(navWrap);
      FIREBASE + EmailJS INIT
      ========================= */
   const firebaseConfig = {
-    apiKey: "AIzaSyBG62-fRpZj0q2bZI0APFuJ2l1CjdhNPTM",
+    apiKey: "AIzaSyCX4WV_X4mk7ZDp81c4ePwPvXOgiGYb0_w",
     authDomain: "balatongo-c6705.firebaseapp.com",
     projectId: "balatongo-c6705",
     storageBucket: "balatongo-c6705.firebasestorage.app",
