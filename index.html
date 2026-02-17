@@ -1,1 +1,1461 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+  <meta charset="UTF-8" />
+  <title>BalatonGo</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+   <!-- PapaParse (menetrend) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+
+  <!-- Leaflet (túratérkép) -->
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    crossorigin=""
+  />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+</head>
+
+<body>
+  <div class="app">
+    <!-- FELSŐ SÁV -->
+    <header class="topbar">
+      <div class="logo" data-i18n="app.logo">BalatonGo</div>
+      <button class="menu-toggle" id="openMenuBtn" aria-label="Menü megnyitása">☰</button>
+    </header>
+
+    <main>
+
+<section class="view active" data-route="home" id="homeView">
+  <div class="home-wrap">
+    <div class="bg-photo" aria-hidden="true"></div>
+    <div class="dark-overlay" aria-hidden="true"></div>
+    <div class="cloud-layer" aria-hidden="true">
+      <div class="cloud c1"></div>
+      <div class="cloud c2"></div>
+      <div class="cloud c3"></div>
+    </div>
+
+    <div class="ui">
+      <div class="card" role="main" aria-label="BalatonGo kezdőképernyő">
+        <h2 class="home-title">BalatonGo</h2>
+
+        <!-- ✨ Többnyelvű tagline -->
+        <div class="tagline" data-i18n="home.subtitle"></div>
+
+        <div class="btn-column">
+          <!-- ✨ Többnyelvű Időjárás gomb -->
+          <button
+            class="action-button act-weather"
+            onclick="router.navigate('weather')"
+            data-i18n="home.card.weather"
+          >
+          </button>
+
+          <!-- ✨ Többnyelvű Hajómenetrend -->
+          <button
+            class="action-button act-ferry"
+            onclick="router.navigate('schedule')"
+            data-i18n="home.card.schedule"
+          >
+          </button>
+
+          <!-- ✨ Többnyelvű Túraútvonalak -->
+          <button
+            class="action-button act-hike"
+            onclick="router.navigate('tours')"
+            data-i18n="home.card.tours"
+          >
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+      <!-- ================ MENETREND ================ -->
+      <section class="view" data-route="schedule" id="scheduleView">
+        <div class="schedule-wrap">
+          <div class="app-bg" aria-hidden="true"></div>
+
+          <div class="card">
+            <h1 data-i18n="schedule.title">Menetrend kereső</h1>
+
+            <label for="fromPort">
+              <b data-i18n="schedule.label.from">Honnan:</b>
+            </label>
+            <select id="fromPort"></select>
+
+            <label for="toPort">
+              <b data-i18n="schedule.label.to">Hová:</b>
+            </label>
+            <select id="toPort"></select>
+
+            <label for="datePick">
+              <b data-i18n="schedule.label.date">Dátum:</b>
+            </label>
+            <input type="date" id="datePick" />
+
+            <div class="quick-dates">
+              <button
+                type="button"
+                class="tag"
+                onclick="setDateQuick('today')"
+                data-i18n="schedule.today"
+              >
+                Ma
+              </button>
+              <button
+                type="button"
+                class="tag"
+                onclick="setDateQuick('tomorrow')"
+                data-i18n="schedule.tomorrow"
+              >
+                Holnap
+              </button>
+            </div>
+
+            <button
+              class="btn"
+              id="searchBtn"
+              onclick="searchTrips()"
+              data-i18n="schedule.search"
+            >
+              🔎 Keresés
+            </button>
+<p class="hint season-note" data-i18n="schedule.seasonal">
+  ℹ️ A hajómenetrend szezonális. A téli időszakban általában nincs menetrend szerinti hajóforgalom a Balatonon.
+</p>
+
+<p class="hint" data-i18n="schedule.hint">
+  ℹ️ Sétahajó esetén a kiindulási pont és az érkezési pont ugyanaz.
+</p>
+
+            <div id="results"></div>
+
+            <div class="bottom-bar glass">
+              <button
+                class="back-btn"
+                type="button"
+                onclick="router.navigate('home')"
+                data-i18n="generic.back"
+              >
+                ← Vissza
+              </button>
+            </div>
+
+            <!-- Csak forrás megjelölés, NEM globális lábléc -->
+            <p class="schedule-source">
+              <span data-i18n="schedule.source">
+                Az adatok a Bahart Zrt. hivatalos szolgáltatásából származnak.
+              </span>
+            </p>
+          </div>
+        </div>
+      </section>
+
+<!-- ********** IDŐJÁRÁS NÉZET – WEATHER VIEW BLOKK KEZDETE ********** -->
+<section class="view" data-route="weather" id="weatherView">
+
+  <div class="card card-wide">
+
+    <!-- ✨ Többnyelvű cím -->
+    <h2 data-i18n="weather.title"></h2>
+
+    <div class="form-row">
+
+      <!-- ✨ Többnyelvű placeholder -->
+      <input
+        type="text"
+        id="cityInput"
+        class="input-lg"
+        placeholder=""
+        data-i18n-ph="weather.placeholder"
+        autocomplete="off"
+        inputmode="search"
+        onkeydown="if(event.key==='Enter'){getWeather();}"
+      />
+
+      <!-- ✨ Többnyelvű Induljunk gomb -->
+      <button
+        id="goBtn"
+        class="btn btn-orange"
+        onclick="getWeather()"
+        data-i18n="weather.go"
+      ></button>
+    </div>
+
+    <div id="result" class="panel">
+      <!-- ✨ Többnyelvű kezdeti szöveg -->
+      <p class="placeholder" data-i18n="weather.start"></p>
+    </div>
+
+    <div class="bottom-bar glass">
+      <!-- ✨ Többnyelvű vissza gomb -->
+      <button
+        class="back-btn"
+        type="button"
+        onclick="router.navigate('home')"
+        data-i18n="weather.back"
+      ></button>
+    </div>
+  </div>
+</section>
+<!-- ********** IDŐJÁRÁS NÉZET – WEATHER VIEW BLOKK VÉGE ********** -->
+
+      <!-- ================ TÚRAÚTVONALAK ================ -->
+      <section class="view" data-route="tours" id="toursView" data-view="view-home">
+        <div class="tours-shell app-shell">
+          <header class="hero">
+           <h1 id="page-title">Túraútvonalak</h1>
+<p id="page-subtitle" class="subtitle"></p>
+
+          </header>
+
+          <main class="scroll-area">
+            <!-- HOME -->
+            <section
+  class="tview view active"
+  id="view-home"
+  aria-labelledby="home-title"
+>
+  <div class="view-inner home">
+    <h2 id="home-title" class="sr-only" data-i18n="tours.home.srtitle">Kezdőlap</h2>
+
+    <p class="lead" data-i18n="tours.home.lead">Válaszd ki, hogyan indulnál neki:</p>
+
+    <div class="home-grid">
+      <button class="home-card" data-nav-to="view-search">
+        <div class="icon">🔎</div>
+        <h3 data-i18n="tours.home.card.search.title">Keresés</h3>
+        <p data-i18n="tours.home.card.search.desc">Írj be települést vagy útvonalat</p>
+      </button>
+
+      <button class="home-card" data-nav-to="view-map">
+        <div class="icon">🗺️</div>
+        <h3 data-i18n="tours.home.card.map.title">Térképen</h3>
+        <p data-i18n="tours.home.card.map.desc">Nézd meg a pontokat térképen</p>
+      </button>
+
+      <button class="home-card" data-nav-to="view-nearby">
+        <div class="icon">📍</div>
+        <h3 data-i18n="tours.home.card.nearby.title">A közelben</h3>
+        <p data-i18n="tours.home.card.nearby.desc">Mutasd a közeli helyeket</p>
+      </button>
+    </div>
+  </div>
+</section>
+
+
+            <!-- KERESÉS -->
+            <section
+              class="tview view"
+              id="view-search"
+              aria-labelledby="search-title"
+            >
+              <div class="view-inner">
+                <h2 id="search-title" class="sr-only" data-i18n="tours.search.title">Keresés</h2>
+               <input
+              id="search-input"
+              class="search-input"
+              placeholder="Írj be települést vagy útvonalnevet…"
+              data-i18n-placeholder="tours.search.placeholder"
+              autocomplete="off"
+              inputmode="search"
+              aria-label="Keresés" data-i18n-aria="tours.search.aria"
+              />
+
+                <p class="hint" data-i18n="tours.search.hint">
+  Tipp: „Zamárdi”, „Szent György-hegy” – azonnal szűr 🤸‍♀️
+</p>
+              </div>
+            </section>
+
+            <!-- RÉSZLET -->
+            <section
+              class="tview view"
+              id="view-detail"
+              aria-labelledby="detail-title"
+            >
+              <div class="view-inner">
+                <article
+                  id="detail-card"
+                  class="detail-card"
+                  aria-live="polite"
+                ></article>
+              </div>
+            </section>
+
+            <!-- TÉRKÉP -->
+            <section
+              class="tview view"
+              id="view-map"
+              aria-labelledby="map-title"
+            >
+              <div class="view-inner">
+                <h2 id="map-title" class="sr-only" data-i18n="tours.map.srtitle">Térképes nézet</h2>
+                <div class="map-panel">
+                  <div class="map-toolbar">
+                   <input
+  id="map-filter"
+  class="map-filter"
+  placeholder="Szűrés a térképen (pl. település, név)…"
+  data-i18n-placeholder="tours.map.filter.placeholder"
+  autocomplete="off"
+  inputmode="search"
+  aria-label="Térképes szűrés"
+/>
+
+                    <span id="map-counter" class="map-counter">—</span>
+                  </div>
+                  <div id="map" role="region" aria-label="Balaton térkép"></div>
+                  <div class="csv-status" id="map-status"></div>
+                </div>
+              </div>
+            </section>
+
+            <!-- KÖZELBEN -->
+            <section
+              class="tview view"
+              id="view-nearby"
+              aria-labelledby="nearby-title"
+            >
+              <div class="view-inner">
+                <h2 id="nearby-title" class="sr-only">A közelben</h2>
+
+                <div class="nearby-panel">
+<div class="nearby-row">
+  <button id="nearby-ask" class="primary-btn" data-i18n="tours.nearby.ask">
+    Engedélyezem a helyzetmeghatározást
+  </button>
+
+  <button
+    id="nearby-refresh"
+    class="ghost-btn"
+    title="Pozíció frissítése"
+    data-i18n="tours.nearby.refresh"
+  >
+    Újbóli helymeghatározás
+  </button>
+
+  <label class="switch">
+    <input type="checkbox" id="nearby-watch" />
+    <span data-i18n="tours.nearby.live">Élő követés</span>
+  </label>
+</div>
+
+
+                  <div class="nearby-row">
+                  <label for="nearby-radius" class="nearby-label">
+  <span data-i18n="tours.nearby.radius">Sugár:</span>
+  <strong>
+    <span id="nearby-radius-val">15</span>
+    <span data-i18n="units.km">km</span>
+  </strong>
+</label>
+
+                    <input
+                      id="nearby-radius"
+                      type="range"
+                      min="1"
+                      max="250"
+                      step="1"
+                      value="15"
+                    />
+                    <span id="nearby-counter" class="map-counter">—</span>
+                  </div>
+
+                  <div id="nearby-status" class="csv-status"></div>
+                </div>
+
+                <ul
+                  id="nearby-list"
+                  class="tura-list"
+                  aria-live="polite"
+                ></ul>
+              </div>
+            </section>
+          </main>
+
+          <footer class="bottom-bar glass" role="contentinfo">
+            <button
+              class="back-btn"
+              type="button"
+              data-nav-back
+              aria-label="Vissza"
+            >
+              ← <span data-i18n="generic.back">Vissza</span>
+
+            </button>
+          </footer>
+        </div>
+      </section>
+    </main>
+
+    
+<!-- OLDALSÓ MENÜ (SLIDE-IN) -->
+<aside class="side-menu" id="sideMenu" aria-hidden="true">
+  <div class="side-menu-header">
+    <div>
+      <div class="menu-title" data-i18n="menu.title"></div>
+      <div class="menu-label" data-i18n="menu.subtitle"></div>
+    </div>
+
+    <button
+      class="menu-close"
+      id="closeMenuBtn"
+      aria-label="Menü bezárása"
+      data-i18n-aria="menu.close"
+    >
+      ×
+    </button>
+  </div>
+
+  <!-- NYELVVÁLASZTÓ BLOKK -->
+  <div class="menu-lang">
+    <span data-i18n="menu.language.label">Nyelv:</span>
+    <button class="lang-btn active" data-lang="hu">HU🇭🇺</button>
+    <button class="lang-btn" data-lang="en">EN🇬🇧</button>
+    <button class="lang-btn" data-lang="de">DE🇩🇪</button>
+  </div>
+
+  <!-- FELHASZNÁLÓI DOBOZ A MENÜ TETEJÉN -->
+  <div id="menuUserBox" class="menu-userbox" style="display:none;">
+    <div class="menu-user-main">
+      <span id="menuUserAvatar" class="menu-user-avatar">👤</span>
+      <span id="menuUserName" class="menu-user-name">Vendég</span>
+    </div>
+    <button
+      id="menuLogoutBtn"
+      type="button"
+      class="menu-logout"
+      data-i18n="menu.logout"
+    >
+      Kijelentkezés
+    </button>
+  </div>
+
+    <!-- MENÜ LISTA -->
+  <ul class="menu-list">
+    <li>
+      <button class="menu-link" data-modal="loginModal">
+        <span class="icon">👤</span>
+        <span data-i18n="menu.login">Felhasználói belépés</span>
+      </button>
+    </li>
+    <li>
+      <button class="menu-link" data-modal="helpModal">
+        <span class="icon">❓</span>
+        <span data-i18n="menu.help">
+          Súgó / használati útmutató
+        </span>
+      </button>
+    </li>
+    <li>
+      <button class="menu-link" data-modal="proModal">
+        <span class="icon">💎</span>
+        <span data-i18n="menu.pro">Pro verzió</span>
+      </button>
+    </li>
+    <li>
+      <button class="menu-link" data-modal="stormModal">
+        <span class="icon">⚡</span>
+        <span data-i18n="menu.storm">Viharjelzés ismertető</span>
+      </button>
+    </li>
+    <li>
+      <button class="menu-link" data-modal="trailModal">
+        <span class="icon">📍</span>
+        <span data-i18n="menu.trail">
+          Túrajelzések ismertető
+        </span>
+      </button>
+    </li>
+    <li>
+      <button class="menu-link" data-modal="contactModal">
+        <span class="icon">✉️</span>
+        <span data-i18n="menu.contact">
+          Kapcsolat (űrlappal)
+        </span>
+      </button>
+    </li>
+    <li>
+      <div class="menu-link jogi">
+        <div class="jogi-header">
+          <span class="icon">⚖️</span>
+          <span data-i18n="menu.legal">Jogi tartalmak</span>
+        </div>
+        <div class="jogi-sub">
+          <a
+            href="https://szonjakrizsan-arch.github.io/balatongo-legal/aszf.html"
+            target="_blank"
+            rel="noopener noreferrer"
+            data-i18n="menu.terms"
+          >
+            Általános Szerződési Feltételek (ÁSZF)
+          </a>
+          <a
+            href="https://szonjakrizsan-arch.github.io/balatongo-legal/adatkezeles.html"
+            target="_blank"
+            rel="noopener noreferrer"
+            data-i18n="menu.privacy"
+          >
+            Adatkezelési Tájékoztató
+          </a>
+          <a
+            href="https://szonjakrizsan-arch.github.io/balatongo-legal/impresszum.html"
+            target="_blank"
+            rel="noopener noreferrer"
+            data-i18n="menu.imprint"
+          >
+            Impresszum
+          </a>
+        </div>
+      </div>
+    </li>
+    <li class="menu-note" data-i18n="menu.legal.note">
+      A jogi linkek külön, hivatalos oldalon nyílnak meg.
+    </li>
+  </ul>
+
+  <!-- LÁBLÉC (globális, EGYSÉGES) -->
+  <footer class="footer" data-i18n="footer.copy">
+    © 2025 BalatonGo
+  </footer>
+</aside>
+
+<!-- JS KÖNYVTÁRAK A MENÜHÖZ / EMAILHEZ -->
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+
+<!-- Firebase SDK-k -->
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+
+
+    <!-- =====================
+         MODÁLOK
+         ===================== -->
+
+
+    <!-- FELHASZNÁLÓI BELÉPÉS / PROFIL MODÁL -->
+    <div class="modal" id="loginModal" aria-hidden="true">
+      <div class="modal-dialog">
+        <h2 data-i18n="login.title">Felhasználói belépés</h2>
+        <p
+  id="loginStatusText"
+  class="login-status-text"
+  data-i18n="login.status.logged_out"
+></p>
+
+
+       <!-- 1) BELÉPÉS / REGISZTRÁCIÓ ŰRLAP -->
+<div id="loginFormSection">
+  <div class="form-group">
+    <input
+      type="email"
+      id="loginEmail"
+      placeholder="E-mail cím"
+      data-i18n-placeholder="login.email.placeholder"
+      autocomplete="email"
+    />
+  </div>
+
+  <div class="form-group">
+    <input
+      type="password"
+      id="loginPassword"
+      placeholder="Jelszó (min. 6 karakter)"
+      data-i18n-placeholder="login.password.placeholder"
+      autocomplete="current-password"
+    />
+  </div>
+
+  <div class="form-group">
+    <input
+      type="text"
+      id="loginDisplayName"
+      placeholder="Megjelenített név (pl. Balázs)"
+      data-i18n-placeholder="login.displayname.placeholder"
+      autocomplete="nickname"
+    />
+  </div>
+</div>
+<!-- ELFELEJTETT JELSZÓ -->
+<div class="login-forgot-row">
+  <button
+    type="button"
+    class="link-btn"
+    id="forgotPasswordBtn"
+    data-i18n="login.forgot"
+  >
+    Elfelejtetted a jelszavad?
+  </button>
+</div>
+        <!-- JELSZÓ VISSZAÁLLÍTÁS PANEL (rejtve) -->
+<div id="forgotPasswordPanel" class="forgot-panel hidden" aria-hidden="true">
+  <h3 class="forgot-title" data-i18n="login.forgot.title">Jelszó visszaállítása</h3>
+
+  <p class="forgot-sub" data-i18n="login.forgot.sub">
+    Add meg az e-mail címed, és küldünk egy jelszó-visszaállító linket.
+  </p>
+
+  <div class="form-group">
+    <input
+      type="email"
+      id="forgotEmail"
+      placeholder="E-mail cím"
+      data-i18n-placeholder="login.email.placeholder"
+      autocomplete="email"
+    />
+  </div>
+
+  <p id="forgotMsg" class="forgot-msg" aria-live="polite"></p>
+
+  <div class="forgot-actions">
+    <button type="button" class="btn ghost" id="forgotBackBtn" data-i18n="btn.back">
+      Vissza
+    </button>
+
+    <button type="button" class="btn primary" id="forgotSendBtn" data-i18n="login.forgot.send">
+      Küldés
+    </button>
+  </div>
+</div>
+
+          <!-- ÁSZF / ADATKEZELÉS PIPA -->
+<label class="checkbox">
+  <input type="checkbox" id="loginAccept" />
+  <span>
+    <span data-i18n="login.accept.prefix">
+      Kijelentem, hogy elolvastam és elfogadom az
+    </span>
+    <a
+      href="https://szonjakrizsan-arch.github.io/balatongo-legal/aszf.html"
+      target="_blank"
+      rel="noopener noreferrer"
+      data-i18n="login.accept.aszf"
+    >ÁSZF</a>
+    <span data-i18n="login.accept.middle">
+      -et és az
+    </span>
+    <a
+      href="https://szonjakrizsan-arch.github.io/balatongo-legal/adatkezeles.html"
+      target="_blank"
+      rel="noopener noreferrer"
+      data-i18n="login.accept.privacy"
+    >Adatkezelési Tájékoztató</a>
+    <span data-i18n="login.accept.suffix">.</span>
+  </span>
+</label>
+
+          <!-- HIBAÜZENET -->
+          <p
+            id="loginErrorMsg"
+            style="
+              color: #f97373;
+              font-size: 0.85rem;
+              min-height: 1em;
+              margin: 4px 0 0;
+            "
+          ></p>
+
+          <!-- GOMBOK -->
+          <div class="modal-actions">
+            <button class="btn" data-close data-i18n="btn.close">
+              Bezár
+            </button>
+            <button
+              class="btn primary disabled"
+              id="loginBtn"
+              data-i18n="login.submit"
+            >
+              Belépek / Regisztrálok
+            </button>
+          </div>
+        </div>
+
+        <!-- 2) PROFIL PANEL -->
+        <div id="loginProfileSection" class="login-profile hidden">
+          <div class="profile-line">
+            <div class="profile-avatar">
+              <span id="loginAvatarEmoji">👤</span>
+            </div>
+            <div class="profile-text">
+              <div
+                id="loginProfileNameDisplay"
+                class="profile-name"
+              >
+                Felhasználó
+              </div>
+              <div
+                id="loginProfileEmail"
+                class="profile-email"
+              >
+                email@example.com
+              </div>
+            </div>
+          </div>
+
+          <div class="profile-actions">
+            <button
+              class="btn ghost"
+              id="loginFavoritesBtn"
+              data-i18n="login.favorites.btn"
+            >
+              ⭐ Kedvencek
+            </button>
+            <button
+              class="btn ghost"
+              id="loginSettingsBtn"
+              data-i18n="login.settings.btn"
+            >
+              ⚙️ Beállítások
+            </button>
+          </div>
+
+          <!-- BEÁLLÍTÁSOK / AVATAR PANEL -->
+          <div
+            id="loginSettingsPanel"
+            class="login-settings-panel hidden"
+          >
+            <h3
+              class="login-settings-title"
+              data-i18n="login.settings.title"
+            >
+              Profil beállítások
+            </h3>
+            <p
+              class="login-settings-sub"
+              data-i18n="login.settings.subtitle"
+            >
+              Válassz avatart magadnak:
+            </p>
+
+            <div class="avatar-choices">
+              <button
+                type="button"
+                class="avatar-choice"
+                data-avatar="👤"
+              >
+                👤
+              </button>
+              <button
+                type="button"
+                class="avatar-choice"
+                data-avatar="🧭"
+              >
+                🧭
+              </button>
+              <button
+                type="button"
+                class="avatar-choice"
+                data-avatar="🚶‍♀️"
+              >
+                🚶‍♀️
+              </button>
+              <button
+                type="button"
+                class="avatar-choice"
+                data-avatar="🌊"
+              >
+                🌊
+              </button>
+            </div>
+
+            <p
+              class="login-settings-hint"
+              data-i18n="login.settings.hint"
+            >
+              Az avatar csak a BalatonGo appban jelenik meg, és a
+              böngésződben tároljuk.
+            </p>
+          </div>
+
+          <div class="modal-actions">
+            <button class="btn" data-close data-i18n="btn.close">
+              Bezár
+            </button>
+            <button
+              class="btn danger"
+              id="loginLogoutBtn"
+              data-i18n="login.logout"
+            >
+              Kijelentkezés
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- KEDVENCEK -->
+    <div class="modal" id="favoritesModal" aria-hidden="true">
+      <div class="modal-dialog">
+        <h2 data-i18n="favorites.title">Kedvencek</h2>
+        <p id="favoritesInfoText">
+          Kedvencek mentéséhez kérlek jelentkezz be.
+        </p>
+
+        <div
+          id="favoritesContent"
+          class="favorites-content"
+          style="display: none"
+        >
+          <div class="form-group">
+            <input
+              type="text"
+              id="favoriteNameInput"
+              placeholder="Új kedvenc neve (pl. Badacsony kilátó)"
+            />
+          </div>
+
+          <div class="modal-actions">
+            <button
+              class="btn primary"
+              id="addFavoriteBtn"
+              data-i18n="favorites.add.btn"
+            >
+              Hozzáadás a kedvencekhez
+            </button>
+          </div>
+
+          <ul id="favoritesList" class="favorites-list"></ul>
+        </div>
+
+        <div class="modal-actions">
+          <button class="btn" data-close data-i18n="btn.close">
+            Bezár
+          </button>
+        </div>
+      </div>
+    </div>
+    <!-- SÚGÓ / HASZNÁLATI ÚTMUTATÓ -->
+    <div class="modal" id="helpModal" aria-hidden="true">
+      <div class="modal-dialog help-modal">
+        <h2 data-i18n="help.title">BalatonGo súgó</h2>
+
+        <p data-i18n="help.intro">
+          Üdvözlünk a BalatonGo-ban! Ez az alkalmazás abban segít, hogy
+          biztonságosan és élményesen fedezd fel a Balaton környékét – egy
+          helyen találod az időjárást, menetrendeket, túraútvonalakat és
+          biztonsági tudnivalókat. Az ingyenes verzió használatához
+          internetkapcsolat szükséges.
+        </p>
+
+        <h3 data-i18n="help.home.title">🏠 Kezdőlap</h3>
+        <p data-i18n="help.home.text">
+          A főoldalról éred el az alkalmazás legfontosabb funkcióit:
+        </p>
+        <ul>
+          <li data-i18n="help.home.item.weather">
+            <strong>🌅 Időjárás</strong> – aktuális állapot és előrejelzés.
+          </li>
+          <li data-i18n="help.home.item.ferry">
+            <strong>🚢 Menetrendek</strong> – hajó- és kompindulások.
+          </li>
+          <li data-i18n="help.home.item.hikes">
+            <strong>🚴 Túraútvonalak</strong> – gyalogos és kerékpáros
+            útvonalak.
+          </li>
+        </ul>
+
+        <h3 data-i18n="help.weather.title">🌦️ Időjárás</h3>
+        <p data-i18n="help.weather.text">
+          Az időjárás részben láthatod az aktuális hőmérsékletet,
+          csapadékot, szélirányt és erősséget. A háttérkép színei a
+          Balaton aktuális időjárásához igazodnak.
+        </p>
+
+        <h3 data-i18n="help.ferry.title">⛴️ Menetrend</h3>
+        <p data-i18n="help.ferry.text">
+          A menüpontban megtalálod a Bahart Zrt. komp- és hajójáratait.
+          Az információk hivatalos forrásból származnak, de tájékoztató
+          jellegűek.
+        </p>
+        <div class="tip" data-i18n="help.ferry.tip">
+          💡 Tipp: a szürke sorok jelzik, ha egy járat épp nem közlekedik.
+        </div>
+
+        <h3 data-i18n="help.hikes.title">🧭 Túraútvonalak</h3>
+        <p data-i18n="help.hikes.text">
+          Itt találod a gyalogos és kerékpáros túrákat, hosszuk és
+          nehézségük szerint. A túraoldalon egy kereső menüvel részletesen
+          megtekintheted az általad kiválasztott látnivalót, rövid
+          ismertetővel együtt. A térképes nézet segít a tájékozódásban, a
+          <strong>„Közelben”</strong> gomb pedig megmutatja a környékbeli
+          útvonalakat.
+        </p>
+        <div class="tip" data-i18n="help.hikes.tip">
+          💡 Tipp: engedélyezd a helymeghatározást, hogy a térkép valós
+          időben mutassa a pozíciód!
+        </div>
+
+        <h3 data-i18n="help.menu.title">☰ Menü</h3>
+
+        <h4 data-i18n="help.login.title">👤 Felhasználói belépés</h4>
+        <p data-i18n="help.login.text">
+          Itt a megadott e-maillel, jelszóval és megjelenített névvel
+          személyessé teheted a BalatonGo-t. Bejelentkezés után saját
+          profilod lesz.
+        </p>
+<p data-i18n="help.login.delete">
+  Fióktörlés: ha szeretnéd törölni a fiókodat és a hozzá kapcsolódó adataidat, kérjük írj a balaton.go.info@gmail.com címre a regisztrált e-mail címeddel. A kérést a jogszabályoknak megfelelően feldolgozzuk.
+</p>
+
+        <h4 data-i18n="help.favorites.title">⭐ Kedvencek</h4>
+        <p data-i18n="help.favorites.text">
+          A profil oldaladon elmentheted kedvenc helyeidet és útvonalaidat.
+          Bejelentkezett felhasználóként ezek a saját fiókodhoz
+          kapcsolódnak.
+        </p>
+
+        <h4 data-i18n="help.settings.title">⚙️ Beállítások</h4>
+        <p data-i18n="help.settings.text">
+          Itt választhatsz magadnak avatart, amely egy kicsit
+          személyesebbé és játékosabbá teszi a profilt.
+        </p>
+
+        <h3 data-i18n="help.safety.title">
+          🌩️ Biztonság és jelzések
+        </h3>
+        <p data-i18n="help.safety.text">
+          Itt találod a biztonsági tudnivalókat:
+        </p>
+        <ul>
+          <li data-i18n="help.safety.trail">
+            <strong><span class="icon">📍</span> Turistajelzések ismertető</strong>
+            – mit jelentenek a színek és formák az ösvényeken.
+          </li>
+          <li data-i18n="help.safety.storm">
+            <strong><span class="icon">⚡</span> Viharjelzés ismertető</strong>
+            – hogyan ismerd fel a fokozatokat és a fényjelzéseket.
+          </li>
+        </ul>
+
+        <h3 data-i18n="help.language.title">🗣️ Nyelvválasztó</h3>
+        <p data-i18n="help.language.text">
+          A menü tetején választhatsz magyar 🇭🇺, német 🇩🇪 vagy angol 🇬🇧
+          nyelvet. A választásodat a böngésződ megjegyzi.
+        </p>
+
+        <h3 data-i18n="help.legal.title">📄 Jogi információk</h3>
+        <p data-i18n="help.legal.text">
+          A menüben éred el az <strong>ÁSZF</strong>-et, az
+          <strong>Adatkezelési tájékoztatót</strong> és az
+          <strong>Impresszumot</strong>. Ezek külön, hivatalos oldalon
+          nyílnak meg, mindig a legfrissebb változattal.
+        </p>
+
+        <h3 data-i18n="help.contact.title">💬 Kapcsolat</h3>
+        <p data-i18n="help.contact.text">
+          Ha kérdésed, ötleted vagy hibajelzésed van, írj a hivatalos
+          címre:<br />
+          📧 <strong>balaton.go.info@gmail.com</strong><br />
+          vagy használd a
+          <strong>Kapcsolat (űrlappal)</strong> menüpontot.
+        </p>
+
+        <h3 data-i18n="help.outro.title">🩵 Zárszó</h3>
+        <p data-i18n="help.outro.text">
+          A BalatonGo célja, hogy megbízható és barátságos segítőtársad
+          legyen a Balaton felfedezésében. Kívánunk sok napsütést és
+          tartalmas élményeket!
+        </p>
+
+        <div class="modal-actions">
+          <button class="btn primary" data-close data-i18n="btn.close">
+            Bezár
+          </button>
+        </div>
+      </div>
+    </div>
+    
+    <!-- PRO VERZIÓ -->
+    <div class="modal" id="proModal" aria-hidden="true">
+      <div class="modal-dialog">
+        <h2 data-i18n="pro.title">Pro verzió</h2>
+        <p data-i18n="pro.text">
+          A jövőben elérhető lehet előfizetés alapú, reklámmentes, extra
+          tartalmakat adó Pro verzió (pl. részletes útvonalak, exkluzív
+          ajánlatok, offline térkép). A feltételek külön lesznek
+          közzétéve, csak a bevezetéskor válnak érvényessé.
+        </p>
+        <div class="modal-actions">
+          <button class="btn primary" data-close data-i18n="btn.close">
+            Bezár
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- VIHARJELZÉS ISMERTETŐ -->
+    <div class="modal" id="stormModal" aria-hidden="true">
+      <div class="modal-dialog storm-modal">
+        <h2 data-i18n="storm.title">Viharjelzés ismertető</h2>
+
+        <p class="storm-intro" data-i18n="storm.intro">
+          A Balaton partján elhelyezett viharjelző tornyok villogó
+          fényei segítenek megelőzni a baleseteket. A jelzések a szél
+          erősségére és a várható időjárási veszélyre figyelmeztetnek.
+          Akár fürdesz, horgászol, csónakázol vagy SUP-ozol, fontos, hogy
+          tudd, mit látsz.
+        </p>
+
+        <h3
+          class="storm-subtitle"
+          data-i18n="storm.levels.title"
+        >
+          A viharjelzés fokozatai
+        </h3>
+
+        <div class="signal-grid">
+          <!-- Nincs jelzés -->
+          <div class="signal">
+            <div class="beacon-wrap">
+              <div class="beacon">
+                <div class="beacon-head"></div>
+              </div>
+            </div>
+            <h4 data-i18n="storm.level.none.title">
+              ⚪ Nincs jelzés
+            </h4>
+            <p data-i18n="storm.level.none.text">
+              A torony fénye nem villog. A szél gyenge
+              (<strong>kb. 20 km/h alatt</strong>). A víz általában
+              biztonságos: szabad úszni, csónakázni, SUP-ozni.
+            </p>
+          </div>
+
+          <!-- I. fok -->
+          <div class="signal">
+            <div class="beacon-wrap">
+              <div class="beacon">
+                <div class="beacon-head slow"></div>
+              </div>
+            </div>
+            <h4 data-i18n="storm.level.one.title">
+              🟡 I. fok – Lassú villogás
+            </h4>
+            <p data-i18n="storm.level.one.text">
+              A fény ritkán villan (itt lassabb villogással szemléltetve).
+              Erősödő szél, hullámzás várható
+              (<strong>kb. 40 km/h körüli</strong> széllökések).
+              Csónakkal, SUP-pal, úszva
+              <strong>maradj a part közelében</strong>, figyeld a
+              változást!
+            </p>
+          </div>
+
+          <!-- II. fok -->
+          <div class="signal">
+            <div class="beacon-wrap">
+              <div class="beacon">
+                <div class="beacon-head fast"></div>
+              </div>
+            </div>
+            <h4 data-i18n="storm.level.two.title">
+              🔴 II. fok – Gyors villogás
+            </h4>
+            <p data-i18n="storm.level.two.text">
+              A fény sűrűn villog (itt gyors villogással szemléltetve).
+              Viharos szél, <strong>60 km/h feletti</strong> széllökések
+              várhatók. <strong>Tilos vízre menni!</strong> Minden
+              fürdés, csónakázás, sporttevékenység fokozottan
+              veszélyes.
+            </p>
+          </div>
+        </div>
+
+        <h3
+          class="storm-subtitle"
+          data-i18n="storm.tips.title"
+        >
+          Mire figyelj?
+        </h3>
+        <ul class="storm-list">
+          <li data-i18n="storm.tip.1">
+            A viharjelzés az adott tómedencére érvényes, akkor is, ha épp
+            nem látod a tornyot.
+          </li>
+          <li data-i18n="storm.tip.2">
+            A jelzés nappal és éjszaka is irányadó – sötétben is a
+            fényhez igazodj.
+          </li>
+          <li data-i18n="storm.tip.3">
+            Erős szél a Balatonon nagyon gyorsan kialakulhat, ne várd
+            meg a fekete fellegeket.
+          </li>
+          <li data-i18n="storm.tip.4">
+            Ha bizonytalan vagy, tekintsd a helyzetet mindig a
+            biztonság felől: inkább part, mint kockázat.
+          </li>
+        </ul>
+
+        <h3
+          class="storm-subtitle"
+          data-i18n="storm.balatongo.title"
+        >
+          BalatonGo tippek
+        </h3>
+        <div
+          class="tip storm-tip"
+          data-i18n="storm.balatongo.tip1"
+        >
+          🌊 I. foknál se menj messzire: SUP-pal, matraccal, csónakkal
+          maradj pár perces távolságra a parttól.
+        </div>
+        <div
+          class="tip storm-tip"
+          data-i18n="storm.balatongo.tip2"
+        >
+          ⚡ II. foknál gyere ki a vízből, és segíts szólni másoknak is,
+          ha nem figyelik a jeleket.
+        </div>
+        <div
+          class="tip storm-tip"
+          data-i18n="storm.balatongo.tip3"
+        >
+          👀 Ne csak az eget nézd: a villogó fény gyorsabbá válása
+          egyértelmű jel, hogy baj jöhet.
+        </div>
+
+        <div class="modal-actions">
+          <button class="btn primary" data-close data-i18n="btn.ok">
+            Rendben
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- TÚRAJELZÉSEK ISMERTETŐ -->
+    <div class="modal" id="trailModal" aria-hidden="true">
+      <div class="modal-dialog trail-modal">
+        <h2 data-i18n="trail.title">Túrajelzések ismertető</h2>
+
+        <p class="trail-intro" data-i18n="trail.intro">
+          A Balaton körül sétálva, kerékpározva gyakran találkozhatsz
+          színes turistajelzésekkel. Ezek a jelek mutatják, merre visz az
+          út, milyen célhoz vezet, és melyik útra térhetsz rá
+          biztonságosan. A jelzések
+          <strong>fehér alapra festett színes formák</strong> – pont úgy,
+          ahogy az erdőben látod a fákon.
+        </p>
+
+        <h3
+          class="trail-subtitle"
+          data-i18n="trail.colors.title"
+        >
+          A színek jelentése
+        </h3>
+        <p class="trail-text" data-i18n="trail.colors.text">
+          A színek <strong>nem</strong> a túra nehézségét, hanem az
+          útvonal szerepét és jelentőségét mutatják.
+        </p>
+
+        <div class="trail-card-grid">
+          <div class="trail-card">
+            <div class="trail-card-title">
+              <div class="mark mark-blue-sav"></div>
+              <h4 data-i18n="trail.color.blue.title">
+                Kék – gerincútvonal
+              </h4>
+            </div>
+            <p data-i18n="trail.color.blue.text">
+              Hosszú, fontos főútvonalak. Példa: az Országos Kéktúra
+              Balaton-felvidéki szakaszai.
+            </p>
+          </div>
+
+          <div class="trail-card">
+            <div class="trail-card-title">
+              <div class="mark mark-red-sav"></div>
+              <h4 data-i18n="trail.color.red.title">
+                Piros – kiemelt útvonal
+              </h4>
+            </div>
+            <p data-i18n="trail.color.red.text">
+              Fontos regionális utak, látványos pontokat, településeket
+              kötnek össze.
+            </p>
+          </div>
+
+          <div class="trail-card">
+            <div class="trail-card-title">
+              <div class="mark mark-green-sav"></div>
+              <h4 data-i18n="trail.color.green.title">
+                Zöld – helyi túra
+              </h4>
+            </div>
+            <p data-i18n="trail.color.green.text">
+              Rövidebb, helyi útvonalak, kilátókhoz, tanösvényekhez,
+              könnyebb túrákhoz.
+            </p>
+          </div>
+
+          <div class="trail-card">
+            <div class="trail-card-title">
+              <div class="mark mark-yellow-sav"></div>
+              <h4 data-i18n="trail.color.yellow.title">
+                Sárga – összekötő út
+              </h4>
+            </div>
+            <p data-i18n="trail.color.yellow.text">
+              Összekötő, leágazó, tematikus mellékutak, tanösvények.
+            </p>
+          </div>
+        </div>
+
+        <h3
+          class="trail-subtitle"
+          data-i18n="trail.forms.title"
+        >
+          A jelzések formái
+        </h3>
+        <p class="trail-text" data-i18n="trail.forms.text">
+          A <strong>szín + forma együtt</strong> mondja meg, milyen úton
+          jársz és milyen célt hoz. Például: kék sáv = hosszú
+          főútvonal; zöld háromszög = helyi kilátóhoz vezető út.
+        </p>
+
+        <div class="trail-card-grid">
+          <div class="trail-card">
+            <div class="trail-card-title">
+              <div class="mark mark-blue-sav"></div>
+              <h4 data-i18n="trail.form.sav.title">
+                Sávjelzés
+              </h4>
+            </div>
+            <p data-i18n="trail.form.sav.text">
+              Folyamatos fő turistaútvonal. Hosszabb, jól követhető
+              gerinc- vagy főút.
+            </p>
+          </div>
+
+          <div class="trail-card">
+            <div class="trail-card-title">
+              <div class="mark mark-cross"></div>
+              <h4 data-i18n="trail.form.cross.title">
+                Kereszt
+              </h4>
+            </div>
+            <p data-i18n="trail.form.cross.text">
+              Összekötő vagy rövidítő út két jelzett út között.
+            </p>
+          </div>
+
+          <div class="trail-card">
+            <div class="trail-card-title">
+              <div class="mark mark-triangle"></div>
+              <h4 data-i18n="trail.form.triangle.title">
+                Háromszög
+              </h4>
+            </div>
+            <p data-i18n="trail.form.triangle.text">
+              Kilátóhoz, csúcshoz, panorámaponthoz vezető jelzés.
+            </p>
+          </div>
+
+          <div class="trail-card">
+            <div class="trail-card-title">
+              <div class="mark mark-square"></div>
+              <h4 data-i18n="trail.form.square.title">
+                Négyzet
+              </h4>
+            </div>
+            <p data-i18n="trail.form.square.text">
+              Szálláshelyhez, kulcsosházhoz, menedékházhoz vezető út.
+            </p>
+          </div>
+
+          <div class="trail-card">
+            <div class="trail-card-title">
+              <div class="mark mark-circle"></div>
+              <h4 data-i18n="trail.form.circle.title">
+                Kör
+              </h4>
+            </div>
+            <p data-i18n="trail.form.circle.text">
+              Forráshoz, kúthoz, ivóvízvételi helyhez vezető jelzés.
+            </p>
+          </div>
+
+          <div class="trail-card">
+            <div class="trail-card-title">
+              <div class="mark mark-omega"></div>
+              <h4 data-i18n="trail.form.omega.title">
+                Omega
+              </h4>
+            </div>
+            <p data-i18n="trail.form.omega.text">
+              Barlanghoz vezető út jelzése.
+            </p>
+          </div>
+
+          <div class="trail-card">
+            <div class="trail-card-title">
+              <div class="mark mark-ruin"></div>
+              <h4 data-i18n="trail.form.ruin.title">
+                Rom jel
+              </h4>
+            </div>
+            <p data-i18n="trail.form.ruin.text">
+              Várromhoz, romokhoz, történelmi helyhez vezető jelzés.
+            </p>
+          </div>
+
+          <div class="trail-card">
+            <div class="trail-card-title">
+              <div class="mark mark-loop"></div>
+              <h4 data-i18n="trail.form.loop.title">
+                Körséta / tanösvény
+              </h4>
+            </div>
+            <p data-i18n="trail.form.loop.text">
+              Jelzett körtúra, amely ugyanoda ér vissza, ahonnan
+              indultál.
+            </p>
+          </div>
+        </div>
+
+        <h3
+          class="trail-subtitle"
+          data-i18n="trail.read.title"
+        >
+          Hogyan olvasd a jelzéseket?
+        </h3>
+        <ul class="trail-list">
+          <li data-i18n="trail.read.1">
+            Minden jelzés fehér alapra festett színes forma – mint az
+            erdőben a fákon.
+          </li>
+          <li data-i18n="trail.read.2">
+            A <strong>szín</strong> az útvonal szerepét, a
+            <strong>forma</strong> a célt mutatja.
+          </li>
+          <li data-i18n="trail.read.3">
+            Ha több jelzés van egymás mellett, ott útelágazás, csomópont
+            vagy közös szakasz van.
+          </li>
+          <li data-i18n="trail.read.4">
+            Irányváltást „eltolt” jel vagy nyíl-szerű festés jelzi a
+            fán vagy kövön.
+          </li>
+          <li data-i18n="trail.read.5">
+            Ha egy ideje nem látsz új jelet, állj meg, nézz vissza az
+            utolsó biztos jelre – lehet, hogy letértél.
+          </li>
+          <li data-i18n="trail.read.6">
+            Mindig a következő jelzést keresd, mielőtt letérnél az
+            útról!
+          </li>
+        </ul>
+
+        <h3
+          class="trail-subtitle"
+          data-i18n="trail.tips.title"
+        >
+          BalatonGo tippek túrázóknak
+        </h3>
+        <div class="trail-tip" data-i18n="trail.tip.1">
+          🌿 Maradj a jelzett úton – szőlőhegyen, magánterület mellett és
+          természetvédelmi területen ez különösen fontos.
+        </div>
+        <div class="trail-tip" data-i18n="trail.tip.2">
+          🧭 Ha eltűnik a jel: menj vissza az utolsó biztos jelhez, ne
+          „találomra” vágj át az erdőn.
+        </div>
+        <div class="trail-tip" data-i18n="trail.tip.3">
+          💧 Nyáron mindig legyen nálad elegendő víz. A forrásjelzés
+          segíthet, de az aktuális ihatóságot helyben érdemes
+          ellenőrizni.
+        </div>
+        <div class="trail-tip" data-i18n="trail.tip.4">
+          ⚡ Vihar esetén kerüld a hegytetőt, kilátót, magányos fákat –
+          menj lejjebb, védettebb helyre.
+        </div>
+        <div class="trail-tip" data-i18n="trail.tip.5">
+          📱 A BalatonGo célja, hogy a térképen látott útvonalakat és a
+          terepen látott jelzéseket könnyen összekapcsold.
+        </div>
+
+        <div class="modal-actions">
+          <button class="btn primary" data-close data-i18n="btn.ok">
+            Értettem
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- KAPCSOLAT -->
+<div class="modal" id="contactModal" aria-hidden="true">
+  <div class="modal-dialog">
+    <h2 data-i18n="contact.title">Kapcsolat</h2>
+
+    <p data-i18n="contact.intro">
+      Kérdésed, észrevételed vagy javaslatod van a BalatonGo-val kapcsolatban? Írj nekünk.
+    </p>
+
+    <div class="form-group">
+      <input
+        type="text"
+        id="contactName"
+        data-i18n-placeholder="contact.name.placeholder"
+        placeholder="Név (nem kötelező)"
+        autocomplete="name"
+      />
+    </div>
+
+    <div class="form-group">
+      <input
+        type="email"
+        id="contactEmail"
+        data-i18n-placeholder="contact.email.placeholder"
+        placeholder="E-mail cím (ajánlott)"
+        autocomplete="email"
+      />
+    </div>
+
+    <div class="form-group">
+      <textarea
+        id="contactMessage"
+        data-i18n-placeholder="contact.message.placeholder"
+        placeholder="Üzeneted..."
+        rows="4"
+      ></textarea>
+    </div>
+
+    <p
+      id="contactStatus"
+      style="
+        font-size: 0.85rem;
+        min-height: 1.2em;
+        margin: 4px 0 0;
+      "
+    ></p>
+
+    <div class="modal-actions">
+      <button class="btn" data-close data-i18n="btn.cancel">
+        Mégse
+      </button>
+      <button
+        class="btn primary"
+        id="contactSubmitBtn"
+        data-i18n="contact.submit"
+      >
+        Üzenet küldése
+      </button>
+    </div>
+  </div>
+</div>
+
+  <!-- JS KÖNYVTÁRAK A MENÜHÖZ / EMAILHEZ -->
+  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+
+  <!-- Firebase SDK-k -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+
+ 
 
