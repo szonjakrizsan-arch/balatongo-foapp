@@ -3329,7 +3329,10 @@ langBtns.forEach((btn) => {
       forgotSendBtn.textContent = tr("login.forgot.sending", "Küldöm...");
 
       try {
-        await auth.sendPasswordResetEmail(email);
+        await auth.sendPasswordResetEmail(email, {
+  url: "https://szonjakrizsan-arch.github.io"
+});
+
 
         // Siker üzenet NE kulcs legyen
         setForgotMsg(
