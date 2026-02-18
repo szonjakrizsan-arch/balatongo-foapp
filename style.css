@@ -2765,3 +2765,13 @@ button.fav-toggle.is-fav,
 #forgotPasswordPanel .btn.ghost:hover{
   border-color: rgba(143,211,255,0.55);
 }
+/* LOGIN MODAL – hidden legyen tényleg rejtett (csak itt) */
+#loginModal .hidden {
+  display: none !important;
+}
+
+/* LOGIN MODAL – a két szekció mindig a modal szélességét vegye fel */
+#loginModal #loginFormSection,
+#loginModal #loginProfileSection {
+  width: 100%;
+}
