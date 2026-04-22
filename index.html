@@ -1,13 +1,7 @@
-<!DOCTYPE html>
-<html lang="hu">
-<head>
+
   <meta charset="UTF-8" />
   <title>BalatonGo</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
-  <!-- SAJÁT CSS (EZ HIÁNYZOTT) -->
-  <link rel="stylesheet" href="/balatongo-foapp/style.css" />
-
 
   <!-- PapaParse (menetrend) -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
@@ -20,17 +14,12 @@
   />
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
 
-  <!-- SAJÁT JS -->
-  <script src="script.js" defer></script>
-</head>
 
-
-<body>
   <div class="app">
     <!-- FELSŐ SÁV -->
     <header class="topbar">
       <div class="logo" data-i18n="app.logo">BalatonGo</div>
-      <button class="menu-toggle" id="openMenuBtn" aria-label="Menü megnyitása">☰</button>
+   <button class="menu-toggle" id="openMenuBtn" aria-label="Menü megnyitása">☰</button>
     </header>
 
     <main>
@@ -127,7 +116,7 @@
             <button
               class="btn"
               id="searchBtn"
-              onclick="searchTrips()"
+              onclick="safeSearch()"
               data-i18n="schedule.search"
             >
               🔎 Keresés
@@ -344,6 +333,7 @@
     title="Pozíció frissítése"
     data-i18n="tours.nearby.refresh"
   >
+  
     Újbóli helymeghatározás
   </button>
 
@@ -353,7 +343,8 @@
   </label>
 </div>
 
-
+<p class="nearby-hint" data-i18n="nearby.hint"></p>
+                  
                   <div class="nearby-row">
                   <label for="nearby-radius" class="nearby-label">
   <span data-i18n="tours.nearby.radius">Sugár:</span>
@@ -453,7 +444,7 @@
       </button>
     </li>
     <li>
-      <button class="menu-link" data-modal="helpModal">
+      <button class="menu-link" data-modal="helpModal" onclick="openModal('helpModal')">
         <span class="icon">❓</span>
         <span data-i18n="menu.help">
           Súgó / használati útmutató
@@ -539,7 +530,7 @@
 <!-- Firebase SDK-k -->
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 
 
     <!-- =====================
@@ -547,297 +538,226 @@
          ===================== -->
 
 
-    <!-- FELHASZNÁLÓI BELÉPÉS / PROFIL MODÁL -->
-    <div class="modal" id="loginModal" aria-hidden="true">
-      <div class="modal-dialog">
-        <h2 data-i18n="login.title">Felhasználói belépés</h2>
-        <p
-  id="loginStatusText"
-  class="login-status-text"
-  data-i18n="login.status.logged_out"
-></p>
+   <!-- FELHASZNÁLÓI BELÉPÉS / PROFIL MODÁL -->
+<div class="modal" id="loginModal" aria-hidden="true">
+  <div class="modal-dialog">
+    <h2 data-i18n="login.title">Felhasználói belépés</h2>
 
+    <p id="loginStatusText" class="login-status-text" data-i18n="login.status.logged_out"></p>
 
-       <!-- 1) BELÉPÉS / REGISZTRÁCIÓ ŰRLAP -->
-<div id="loginFormSection">
-  <div class="form-group">
-    <input
-      type="email"
-      id="loginEmail"
-      placeholder="E-mail cím"
-      data-i18n-placeholder="login.email.placeholder"
-      autocomplete="email"
-    />
-  </div>
-
-  <div class="form-group">
-    <input
-      type="password"
-      id="loginPassword"
-      placeholder="Jelszó (min. 6 karakter)"
-      data-i18n-placeholder="login.password.placeholder"
-      autocomplete="current-password"
-    />
-  </div>
-
-  <div class="form-group">
-    <input
-      type="text"
-      id="loginDisplayName"
-      placeholder="Megjelenített név (pl. Balázs)"
-      data-i18n-placeholder="login.displayname.placeholder"
-      autocomplete="nickname"
-    />
-  </div>
-</div>
-<!-- ELFELEJTETT JELSZÓ -->
-<div class="login-forgot-row">
-  <button
-    type="button"
-    class="link-btn"
-    id="forgotPasswordBtn"
-    data-i18n="login.forgot"
-  >
-    Elfelejtetted a jelszavad?
-  </button>
-</div>
-        <!-- JELSZÓ VISSZAÁLLÍTÁS PANEL (rejtve) -->
-<div id="forgotPasswordPanel" class="forgot-panel hidden" aria-hidden="true">
-  <h3 class="forgot-title" data-i18n="login.forgot.title">Jelszó visszaállítása</h3>
-
-  <p class="forgot-sub" data-i18n="login.forgot.sub">
-    Add meg az e-mail címed, és küldünk egy jelszó-visszaállító linket.
-  </p>
-
-  <div class="form-group">
-    <input
-      type="email"
-      id="forgotEmail"
-      placeholder="E-mail cím"
-      data-i18n-placeholder="login.email.placeholder"
-      autocomplete="email"
-    />
-  </div>
-
-  <p id="forgotMsg" class="forgot-msg" aria-live="polite"></p>
-
-  <div class="forgot-actions">
-    <button type="button" class="btn ghost" id="forgotBackBtn" data-i18n="btn.back">
-      Vissza
-    </button>
-
-    <button type="button" class="btn primary" id="forgotSendBtn" data-i18n="login.forgot.send">
-      Küldés
-    </button>
-  </div>
-</div>
-
-          <!-- ÁSZF / ADATKEZELÉS PIPA -->
-<label class="checkbox">
-  <input type="checkbox" id="loginAccept" />
-  <span>
-    <span data-i18n="login.accept.prefix">
-      Kijelentem, hogy elolvastam és elfogadom az
-    </span>
-    <a
-      href="https://szonjakrizsan-arch.github.io/balatongo-legal/aszf.html"
-      target="_blank"
-      rel="noopener noreferrer"
-      data-i18n="login.accept.aszf"
-    >ÁSZF</a>
-    <span data-i18n="login.accept.middle">
-      -et és az
-    </span>
-    <a
-      href="https://szonjakrizsan-arch.github.io/balatongo-legal/adatkezeles.html"
-      target="_blank"
-      rel="noopener noreferrer"
-      data-i18n="login.accept.privacy"
-    >Adatkezelési Tájékoztató</a>
-    <span data-i18n="login.accept.suffix">.</span>
-  </span>
-</label>
-
-          <!-- HIBAÜZENET -->
-          <p
-            id="loginErrorMsg"
-            style="
-              color: #f97373;
-              font-size: 0.85rem;
-              min-height: 1em;
-              margin: 4px 0 0;
-            "
-          ></p>
-
-          <!-- GOMBOK -->
-          <div class="modal-actions">
-            <button class="btn" data-close data-i18n="btn.close">
-              Bezár
-            </button>
-            <button
-              class="btn primary disabled"
-              id="loginBtn"
-              data-i18n="login.submit"
-            >
-              Belépek / Regisztrálok
-            </button>
-          </div>
-        </div>
-
-        <!-- 2) PROFIL PANEL -->
-        <div id="loginProfileSection" class="login-profile hidden">
-          <div class="profile-line">
-            <div class="profile-avatar">
-              <span id="loginAvatarEmoji">👤</span>
-            </div>
-            <div class="profile-text">
-              <div
-                id="loginProfileNameDisplay"
-                class="profile-name"
-              >
-                Felhasználó
-              </div>
-              <div
-                id="loginProfileEmail"
-                class="profile-email"
-              >
-                email@example.com
-              </div>
-            </div>
-          </div>
-
-          <div class="profile-actions">
-            <button
-              class="btn ghost"
-              id="loginFavoritesBtn"
-              data-i18n="login.favorites.btn"
-            >
-              ⭐ Kedvencek
-            </button>
-            <button
-              class="btn ghost"
-              id="loginSettingsBtn"
-              data-i18n="login.settings.btn"
-            >
-              ⚙️ Beállítások
-            </button>
-          </div>
-
-          <!-- BEÁLLÍTÁSOK / AVATAR PANEL -->
-          <div
-            id="loginSettingsPanel"
-            class="login-settings-panel hidden"
-          >
-            <h3
-              class="login-settings-title"
-              data-i18n="login.settings.title"
-            >
-              Profil beállítások
-            </h3>
-            <p
-              class="login-settings-sub"
-              data-i18n="login.settings.subtitle"
-            >
-              Válassz avatart magadnak:
-            </p>
-
-            <div class="avatar-choices">
-              <button
-                type="button"
-                class="avatar-choice"
-                data-avatar="👤"
-              >
-                👤
-              </button>
-              <button
-                type="button"
-                class="avatar-choice"
-                data-avatar="🧭"
-              >
-                🧭
-              </button>
-              <button
-                type="button"
-                class="avatar-choice"
-                data-avatar="🚶‍♀️"
-              >
-                🚶‍♀️
-              </button>
-              <button
-                type="button"
-                class="avatar-choice"
-                data-avatar="🌊"
-              >
-                🌊
-              </button>
-            </div>
-
-            <p
-              class="login-settings-hint"
-              data-i18n="login.settings.hint"
-            >
-              Az avatar csak a BalatonGo appban jelenik meg, és a
-              böngésződben tároljuk.
-            </p>
-          </div>
-
-          <div class="modal-actions">
-            <button class="btn" data-close data-i18n="btn.close">
-              Bezár
-            </button>
-            <button
-              class="btn danger"
-              id="loginLogoutBtn"
-              data-i18n="login.logout"
-            >
-              Kijelentkezés
-            </button>
-          </div>
-        </div>
+    <!-- 1) BELÉPÉS / REGISZTRÁCIÓ ŰRLAP -->
+    <div id="loginFormSection" class="login-form-section">
+      <div class="form-group">
+        <input
+          type="email"
+          id="loginEmail"
+          placeholder="E-mail cím"
+          data-i18n-placeholder="login.email.placeholder"
+          autocomplete="email"
+        />
       </div>
-    </div>
 
-    <!-- KEDVENCEK -->
-    <div class="modal" id="favoritesModal" aria-hidden="true">
-      <div class="modal-dialog">
-        <h2 data-i18n="favorites.title">Kedvencek</h2>
-        <p id="favoritesInfoText">
-          Kedvencek mentéséhez kérlek jelentkezz be.
+      <div class="form-group">
+        <input
+          type="password"
+          id="loginPassword"
+          placeholder="Jelszó (min. 6 karakter)"
+          data-i18n-placeholder="login.password.placeholder"
+          autocomplete="current-password"
+        />
+      </div>
+
+      <div class="form-group">
+        <input
+          type="text"
+          id="loginDisplayName"
+          placeholder="Megjelenített név (pl. Balázs)"
+          data-i18n-placeholder="login.displayname.placeholder"
+          autocomplete="nickname"
+        />
+      </div>
+
+      <!-- ELFELEJTETT JELSZÓ -->
+      <div class="login-forgot-row">
+        <button
+          type="button"
+          class="link-btn"
+          id="forgotPasswordBtn"
+          data-i18n="login.forgot"
+        >
+          Elfelejtetted a jelszavad?
+        </button>
+      </div>
+
+      <!-- JELSZÓ VISSZAÁLLÍTÁS PANEL (rejtve) -->
+      <div id="forgotPasswordPanel" class="forgot-panel hidden" aria-hidden="true">
+        <h3 class="forgot-title" data-i18n="login.forgot.title">Jelszó visszaállítása</h3>
+
+        <p class="forgot-sub" data-i18n="login.forgot.sub">
+          Add meg az e-mail címed, és küldünk egy jelszó-visszaállító linket.
         </p>
 
-        <div
-          id="favoritesContent"
-          class="favorites-content"
-          style="display: none"
-        >
-          <div class="form-group">
-            <input
-              type="text"
-              id="favoriteNameInput"
-              placeholder="Új kedvenc neve (pl. Badacsony kilátó)"
-            />
-          </div>
-
-          <div class="modal-actions">
-            <button
-              class="btn primary"
-              id="addFavoriteBtn"
-              data-i18n="favorites.add.btn"
-            >
-              Hozzáadás a kedvencekhez
-            </button>
-          </div>
-
-          <ul id="favoritesList" class="favorites-list"></ul>
+        <div class="form-group">
+          <input
+            type="email"
+            id="forgotEmail"
+            placeholder="E-mail cím"
+            data-i18n-placeholder="login.email.placeholder"
+            autocomplete="email"
+          />
         </div>
 
-        <div class="modal-actions">
-          <button class="btn" data-close data-i18n="btn.close">
-            Bezár
+        <p id="forgotMsg" class="forgot-msg" aria-live="polite"></p>
+
+        <div class="forgot-actions">
+          <button type="button" class="btn ghost" id="forgotBackBtn" data-i18n="btn.back">
+            Vissza
+          </button>
+
+          <button type="button" class="btn primary" id="forgotSendBtn" data-i18n="login.forgot.send">
+            Küldés
           </button>
         </div>
       </div>
+
+      <!-- ÁSZF / ADATKEZELÉS PIPA -->
+      <label class="checkbox">
+        <input type="checkbox" id="loginAccept" />
+        <span>
+          <span data-i18n="login.accept.prefix">
+            Kijelentem, hogy elolvastam és elfogadom az
+          </span>
+          <a
+            href="https://szonjakrizsan-arch.github.io/balatongo-legal/aszf.html"
+            target="_blank"
+            rel="noopener noreferrer"
+            data-i18n="login.accept.aszf"
+          >ÁSZF</a>
+          <span data-i18n="login.accept.middle">-et és az</span>
+          <a
+            href="https://szonjakrizsan-arch.github.io/balatongo-legal/adatkezeles.html"
+            target="_blank"
+            rel="noopener noreferrer"
+            data-i18n="login.accept.privacy"
+          >Adatkezelési Tájékoztató</a>
+          <span data-i18n="login.accept.suffix">.</span>
+        </span>
+      </label>
+
+      <!-- HIBAÜZENET -->
+      <p
+        id="loginErrorMsg"
+        style="color:#f97373;font-size:0.85rem;min-height:1em;margin:4px 0 0;"
+      ></p>
+
+      <!-- GOMBOK -->
+      <div class="modal-actions">
+        <button class="btn" data-close data-i18n="btn.close">Bezár</button>
+        <button class="btn primary disabled" id="loginBtn" data-i18n="login.submit">
+          Belépek / Regisztrálok
+        </button>
+      </div>
     </div>
+
+    <!-- 2) PROFIL PANEL -->
+<div id="loginProfileSection" class="login-profile hidden">
+  <div class="profile-line">
+    <div class="profile-avatar">
+      <span id="loginAvatarEmoji">👤</span>
+    </div>
+    <div class="profile-text">
+      <div id="loginProfileNameDisplay" class="profile-name">Felhasználó</div>
+      <div id="loginProfileEmail" class="profile-email">email@example.com</div>
+    </div>
+  </div>
+
+  <div class="profile-actions">
+    <button
+      type="button"
+      class="btn ghost"
+      id="loginFavoritesBtn"
+      data-i18n="login.favorites.btn"
+    >
+      ⭐ Kedvencek
+    </button>
+
+    <button
+      type="button"
+      class="btn ghost"
+      id="loginSettingsBtn"
+      data-i18n="login.settings.btn"
+    >
+      ⚙️ Beállítások
+    </button>
+  </div>
+
+  <div id="loginSettingsPanel" class="login-settings-panel hidden">
+    <h3 class="login-settings-title" data-i18n="login.settings.title">
+      Profil beállítások
+    </h3>
+    <p class="login-settings-sub" data-i18n="login.settings.subtitle">
+      Válassz avatart magadnak:
+    </p>
+
+    <div class="avatar-choices">
+      <button type="button" class="avatar-choice" data-avatar="👤">👤</button>
+      <button type="button" class="avatar-choice" data-avatar="🧭">🧭</button>
+      <button type="button" class="avatar-choice" data-avatar="🚶‍♀️">🚶‍♀️</button>
+      <button type="button" class="avatar-choice" data-avatar="🌊">🌊</button>
+    </div>
+
+    <p class="login-settings-hint" data-i18n="login.settings.hint">
+      Az avatar csak a BalatonGo appban jelenik meg, és a böngésződben tároljuk.
+    </p>
+  </div>
+
+  <div class="modal-actions">
+    <button class="btn" data-close data-i18n="btn.close">Bezár</button>
+    <button
+      class="btn danger"
+      id="loginLogoutBtn"
+      data-i18n="login.logout"
+    >
+      Kijelentkezés
+    </button>
+  </div>
+</div>
+<!-- KEDVENCEK -->
+<div class="modal" id="favoritesModal" aria-hidden="true">
+  <div class="modal-dialog">
+    <h2 data-i18n="favorites.title">Kedvencek</h2>
+
+    <p id="favoritesInfoText" data-i18n="favorites.info.login_required">
+      Kedvencek mentéséhez kérlek jelentkezz be.
+    </p>
+
+    <div id="favoritesContent" class="favorites-content">
+
+      <div class="form-group">
+        <input
+          type="text"
+          id="favoriteNameInput"
+          placeholder="Új kedvenc neve (pl. Badacsony kilátó)"
+          data-i18n-placeholder="favorites.name.placeholder"
+        />
+      </div>
+
+      <div class="modal-actions">
+        <button class="btn primary" id="addFavoriteBtn" data-i18n="favorites.add.btn">
+          Hozzáadás a kedvencekhez
+        </button>
+      </div>
+
+      <ul id="favoritesList" class="favorites-list"></ul>
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn" data-close data-i18n="btn.close">Bezár</button>
+    </div>
+  </div>
+</div>
+
+
     <!-- SÚGÓ / HASZNÁLATI ÚTMUTATÓ -->
     <div class="modal" id="helpModal" aria-hidden="true">
       <div class="modal-dialog help-modal">
@@ -1459,10 +1379,3 @@
 
   <!-- JS KÖNYVTÁRAK A MENÜHÖZ / EMAILHEZ -->
   <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
-
-  <!-- Firebase SDK-k -->
-  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
-
- 
