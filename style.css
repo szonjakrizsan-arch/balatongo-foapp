@@ -1076,7 +1076,7 @@ body {
   align-items: center;
   justify-content: center;
   background: var(--overlay);
-  z-index: 50;
+  z-index: 9999;
   padding: 16px;
 }
 
@@ -1778,6 +1778,10 @@ textarea::placeholder {
   display: none !important;
 }
 
+#loginModal .hidden {
+  display: none !important;
+}
+
 .login-profile {
   margin-top: 1rem;
 }
@@ -1838,11 +1842,11 @@ textarea::placeholder {
   font-size: 0.95rem;
 }
 
+
 .favorite-item span {
   flex: 1;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  white-space: normal;
+  word-break: break-word;
 }
 
 .favorite-item .btn.small,
@@ -2765,13 +2769,47 @@ button.fav-toggle.is-fav,
 #forgotPasswordPanel .btn.ghost:hover{
   border-color: rgba(143,211,255,0.55);
 }
-/* LOGIN MODAL – hidden legyen tényleg rejtett (csak itt) */
-#loginModal .hidden {
-  display: none !important;
-}
-
 /* LOGIN MODAL – a két szekció mindig a modal szélességét vegye fel */
 #loginModal #loginFormSection,
 #loginModal #loginProfileSection {
   width: 100%;
+}
+
+/* LOGIN MODAL – csak a két szekció legyen rejtve */
+#loginModal #loginFormSection.hidden,
+#loginModal #loginProfileSection.hidden {
+  display: none !important;
+}
+/* === MODÁL VÉSZMEGOLDÁS (ideiglenes, teszt) === */
+.modal {
+  display: none !important;
+  position: fixed !important;
+  inset: 0 !important;
+  z-index: 999999 !important;
+  background: rgba(0,0,0,0.65) !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 16px !important;
+}
+
+.modal.active,
+.modal[aria-hidden="false"] {
+  display: flex !important;
+}
+
+.modal-dialog {
+  position: relative !important;
+  z-index: 1000000 !important;
+  background: #020617 !important;
+  border: 2px solid #ffffff !important;   /* hogy biztos lásd */
+}
+.view[data-route="schedule"] .result-extra {
+  font-size: 0.9rem;
+  opacity: 0.85;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+#loginModal .hidden {
+  display: none !important;
 }
