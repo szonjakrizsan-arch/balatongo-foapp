@@ -6,6 +6,34 @@
 // - Menü + modálok + többnyelvűség + Firebase Auth + kedvencek + Kapcsolat + EmailJS
 
 document.addEventListener("DOMContentLoaded", () => {
+  // ✅ MODÁLOK BIZTONSÁGOS HELYRE MOZGATÁSA (body alá)
+// azért kell, mert ha a modál az aside#sideMenu alatt van, a menü becsukásakor eltűnik (aria-hidden/transform).
+(function ensureModalsOutsideSideMenu() {
+  const MODAL_IDS = [
+    "loginModal",
+    "favoritesModal",
+    "helpModal",
+    "proModal",
+    "stormModal",
+    "trailModal",
+    "contactModal"
+  ];
+
+  function move() {
+    MODAL_IDS.forEach((id) => {
+      const el = document.getElementById(id);
+      if (el && el.parentElement !== document.body) {
+        document.body.appendChild(el);
+      }
+    });
+  }
+
+  // futtatjuk azonnal + amikor a DOM kész
+  move();
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", move, { once: true });
+  }
+})();
    let currentLang = "hu";
   
  function t(key) {
@@ -289,9 +317,12 @@ function fillStopSelects() {
   // Település-szintű nevek (duplikátumok nélkül)
   const namesSet = new Set();
   GTFS.stops.forEach((s) => {
-    const name = cleanStopName(s.stop_name);
-    if (name) namesSet.add(name);
-  });
+  const raw = (s.stop_name || "").toLowerCase();
+  const name = cleanStopName(s.stop_name);
+
+  if (name === "Balatonmária") return;
+  if (name) namesSet.add(name);
+});
 
   const names = [...namesSet].sort((a, b) => a.localeCompare(b, "hu"));
 
@@ -326,6 +357,28 @@ function fillStopSelects() {
   window.setDateQuick = setDateQuick;
 
   function searchTrips() {
+    console.log("TRIP SAMPLE:",
+  GTFS.trips.slice(0, 5)
+);
+    console.log("STOPS DEBUG:",
+  GTFS.stops
+    .filter(s => s.stop_name.toLowerCase().includes("szánt"))
+    .map(s => ({
+      raw: s.stop_name,
+      clean: cleanStopName(s.stop_name),
+      id: s.stop_id
+    }))
+);
+    console.log("STOP_TIMES FIRST ROW:", GTFS.stopTimes[0]);
+    console.log("STOP_TIMES KEYS:", Object.keys(GTFS.stopTimes[0] || {}));
+    
+    console.log(
+  "COMP SEARCH:",
+  GTFS.stopTimes
+    .filter(st => st.trip_id.toLowerCase().includes("komp") || st.trip_id.toLowerCase().includes("rev"))
+    .slice(0, 20)
+);
+    
   const fromSel = document.getElementById("fromPort");
   const toSel = document.getElementById("toPort");
   const dateInp = document.getElementById("datePick");
@@ -344,51 +397,165 @@ function fillStopSelects() {
   if (!fromSel || !toSel || !dateInp || !box) return;
 
   const dateStr = dateInp.value;
+    console.log("DATE DEBUG:", dateStr);
   if (!fromSel.value || !toSel.value || !dateStr) {
     box.innerHTML = `<p>${t("schedule.missingInputs")}</p>`;
     return;
   }
 
   const active = activeServiceIds(dateStr);
-  const fromId = fromSel.value;
-  const toId = toSel.value;
+  const fromName = fromSel.value;
+  const toName = toSel.value;
+if (
+  (fromName === "Szántódrév" && toName === "Tihanyrév") ||
+  (fromName === "Tihanyrév" && toName === "Szántódrév")
+) {
+  console.log("KOMP ÚTVONAL AKTÍV", fromName, toName, GTFS.ferry);
+ console.log("KOMP:", GTFS.ferry);
+}
+  const activeTripIds = new Set(
+    GTFS.trips
+      .filter((trip) => active.has(trip.service_id))
+      .map((trip) => trip.trip_id)
+  );
+
+  const fromStopIds = new Set(
+    GTFS.stops
+      .filter((s) =>
+  !s.stop_name.toLowerCase().includes("Balatonmária") &&
+  cleanStopName(s.stop_name) === fromName
+)
+      .map((s) => s.stop_id)
+  );
+
+  const toStopIds = new Set(
+    GTFS.stops
+      .filter((s) =>
+  !s.stop_name.toLowerCase().includes("Balatonmária") &&
+  cleanStopName(s.stop_name) === toName
+)
+      .map((s) => s.stop_id)
+  );
 
   const candidates = GTFS.stopTimes.filter((st) => {
-    if (!active.has(st.service_id)) return false;
-    return st.stop_id === fromId;
+    if (!activeTripIds.has(st.trip_id)) return false;
+    return fromStopIds.has(st.stop_id);
   });
+    
+    console.log(
+  "STOP_IDS 70_71:",
+  [...new Set(GTFS.stopTimes.map(st => String(st.stop_id).trim()))]
+    .filter(id => id.startsWith("70") || id.startsWith("71"))
+    .slice(0, 50)
+);
+    
+  console.log("MENETREND DEBUG", {
+    dateStr,
+    fromName,
+    toName,
+    activeCount: active.size,
+    activeTripIdsCount: activeTripIds.size,
+    fromStopIds: [...fromStopIds],
+    toStopIds: [...toStopIds],
+    candidatesCount: candidates.length
+  });
+  const trips = [];
+  for (const st of candidates) {
+    const trip = byTripId.get(st.trip_id);
+    if (!trip) continue;
 
-    const trips = [];
-    for (const st of candidates) {
-      const trip = byTripId.get(st.trip_id);
-      if (!trip) continue;
-      const depSec = timeToSec(st.departure_time);
-      const endStop = GTFS.stopTimes.find(
-        (x) => x.trip_id === st.trip_id && x.stop_id === toId
-      );
-      if (!endStop) continue;
-      const arrSec = timeToSec(endStop.arrival_time);
-      if (depSec == null || arrSec == null) continue;
+    const depSec = timeToSec(st.departure_time);
+const fromSeq = Number(st.stop_sequence);
 
-      const route = byRouteId.get(trip.route_id);
-      let type = t("schedule.type.regular");
-      const longName = route?.route_long_name || "";
-      const desc = trip?.trip_headsign || "";
-      if (longName.includes("sétahajó") || desc.includes("sétahajó")) {
-        type = t("schedule.type.cruise");
+const endStop = GTFS.stopTimes.find(
+  (x) =>
+    x.trip_id === st.trip_id &&
+    toStopIds.has(x.stop_id) &&
+    Number(x.stop_sequence) > fromSeq
+);
+if (!endStop) continue;
+
+const arrSec = timeToSec(endStop.arrival_time);
+if (depSec == null || arrSec == null || arrSec < depSec) continue;
+
+   const route = byRouteId.get(trip.route_id);
+let type = t("schedule.type.regular");
+
+const longName = (route?.route_long_name || "").toLowerCase();
+const desc = (trip?.trip_headsign || "").toLowerCase();
+
+if (longName.includes("bulihajó") || desc.includes("bulihajó")) {
+  type = t("schedule.type.party");
+} else if (longName.includes("chill")) {
+  type = t("schedule.type.chill");
+} else if (longName.includes("naplemente")) {
+  type = t("schedule.type.sunset");
+} else if (longName.includes("sétahajó")) {
+  type = t("schedule.type.cruise");
+}
+
+    trips.push({
+      depSec,
+      arrSec,
+      dep: st.departure_time,
+      arr: endStop.arrival_time,
+      route,
+      trip,
+      type,
+    });
+  }
+if (
+  (fromName === "Szántódrév" && toName === "Tihanyrév") ||
+  (fromName === "Tihanyrév" && toName === "Szántódrév")
+) {
+  const ferryRoute = (GTFS.ferry || []).find(
+  (f) => f.from === fromName && f.to === toName
+);
+
+if (ferryRoute) {
+  const formatHHMMSS = (sec) => {
+    const hh = String(Math.floor(sec / 3600)).padStart(2, "0");
+    const mm = String(Math.floor((sec % 3600) / 60)).padStart(2, "0");
+    return `${hh}:${mm}:00`;
+  };
+
+  ferryRoute.slots.forEach((slot) => {
+    if (slot.start && slot.end && slot.interval) {
+      let depSec = timeToSec(`${slot.start}:00`);
+      let dynamicEnd = slot.end;
+
+if (fromName === "Szántódrév" && toName === "Tihanyrév") {
+  if (dateStr >= "2026-06-19") dynamicEnd = "23:30";
+  else if (dateStr >= "2026-05-22") dynamicEnd = "22:00";
+}
+
+if (fromName === "Tihanyrév" && toName === "Szántódrév") {
+  if (dateStr >= "2026-06-19") dynamicEnd = "23:45";
+  else if (dateStr >= "2026-05-22") dynamicEnd = "22:15";
+}
+
+const endSec = timeToSec(`${dynamicEnd}:00`);
+      const intervalSec = Number(slot.interval) * 60;
+
+      while (depSec <= endSec) {
+        const arrSec = depSec + Number(ferryRoute.duration) * 60;
+
+        trips.push({
+          depSec,
+          arrSec,
+          dep: formatHHMMSS(depSec),
+          arr: formatHHMMSS(arrSec),
+          route: { route_long_name: "Komp" },
+          trip: { trip_headsign: "" },
+          type: "Komp",
+        });
+
+        depSec += intervalSec;
       }
-
-      trips.push({
-        depSec,
-        arrSec,
-        dep: st.departure_time,
-        arr: endStop.arrival_time,
-        route,
-        trip,
-        type,
-      });
     }
-
+  });
+}
+}
     const now = new Date();
     const todayStr = now.toISOString().slice(0, 10);
     let nowSec = 0;
@@ -410,10 +577,21 @@ function fillStopSelects() {
       (tTrip) => tTrip.depSec >= nowSec
     );
 
-    renderResults(list, fromId, toId);
+    renderResults(list, fromName, toName);
   }
   window.searchTrips = searchTrips;
+function safeSearch() {
+  if (!scheduleLoaded) {
+    const box = document.getElementById("results");
+    if (box) {
+      box.innerHTML = `<p class="schedule-loading">${t("schedule.loading")}</p>`;
+    }
+    return;
+  }
 
+  searchTrips();
+}
+  window.safeSearch = safeSearch;
   function renderResults(list, fromStopId, toStopId) {
     const box = document.getElementById("results");
     if (!box) return;
@@ -428,9 +606,12 @@ function fillStopSelects() {
 
     if (!list.length) {
       box.innerHTML = `
-        <div class="result-head">${fromName} ➜ ${toName}</div>
-        <p>${t("schedule.noResults")}</p>
-      `;
+  <div class="result-head">${fromName} ➜ ${toName}</div>
+  <div style="font-size:0.85rem; opacity:0.8; margin-bottom:6px;">
+    ${t("schedule.directOnly")}
+  </div>
+  <p>${t("schedule.noResults")}</p>
+`;
       return;
     }
 
@@ -438,7 +619,13 @@ function fillStopSelects() {
     head.className = "result-head";
     head.textContent = `${fromName} ➜ ${toName}`;
     box.appendChild(head);
+const info = document.createElement("div");
+info.style.fontSize = "0.85rem";
+info.style.opacity = "0.8";
+info.style.marginBottom = "6px";
+info.textContent = t("schedule.directOnly");
 
+box.appendChild(info);
     const ul = document.createElement("ul");
     ul.className = "results-list";
 
@@ -464,13 +651,28 @@ function fillStopSelects() {
         )} ${durMin % 60} ${t("schedule.minutes")}`;
       }
 
-      const routeName =
-        r.route?.route_long_name || r.trip?.trip_headsign || "";
+    const rawRouteName =
+  r.route?.route_long_name || r.trip?.trip_headsign || "";
 
-      metaPart.innerHTML = `
-        <div>${routeName}</div>
-        <div class="result-extra">${r.type} • ${durationText}</div>
-      `;
+let routeName = rawRouteName;
+
+if (rawRouteName === "1 órás sétahajó") {
+  routeName = t("schedule.route.cruise1h");
+} else if (rawRouteName === "Naplemente sétahajó") {
+  routeName = t("schedule.route.sunset");
+} else if (rawRouteName === "Chill hajó") {
+  routeName = t("schedule.route.chill");
+}
+
+const extraText =
+  routeName.trim().toLowerCase() === String(r.type).trim().toLowerCase()
+    ? durationText
+    : `${r.type} • ${durationText}`;
+
+metaPart.innerHTML = `
+  <div>${routeName}</div>
+  <div class="result-extra">${extraText}</div>
+`;
 
       li.appendChild(timePart);
       li.appendChild(metaPart);
@@ -500,6 +702,7 @@ function fillStopSelects() {
         stopTimes,
         calendar,
         calendarDates,
+        ferryData
       ] = await Promise.all([
         loadCsv(GTFS_BASE + FILES.stops),
         loadCsv(GTFS_BASE + FILES.routes),
@@ -507,6 +710,7 @@ function fillStopSelects() {
         loadCsv(GTFS_BASE + FILES.stopTimes),
         loadCsv(GTFS_BASE + FILES.calendar),
         loadCsv(GTFS_BASE + FILES.calendarDates),
+        fetch("https://raw.githubusercontent.com/szonjakrizsan-arch/balatongo-menetrend0926/main/komp.json").then(r => r.json()),
       ]);
 
       GTFS.stops = stops;
@@ -515,6 +719,7 @@ function fillStopSelects() {
       GTFS.stopTimes = stopTimes;
       GTFS.calendar = calendar;
       GTFS.calendarDates = calendarDates;
+      GTFS.ferry = ferryData;
 
       buildIndexes();
       fillStopSelects();
@@ -1035,7 +1240,27 @@ function exactLocalityMatch(q) {
 
   return set.has(Q) ? Q : null;
 }
+// Kereső index: ebbe kerül bele, amire keresni lehessen (úticél neve, település, régió, stb.)
+function buildIndex(r) {
+  if (!r) return "";
 
+  const parts = [
+    // név (mindhárom nyelv, hogy biztos találjon)
+    r.name_hu, r.name_en, r.name_de, r.name,
+
+    // település
+    r.locality,
+
+    // régió (minden nyelv)
+    r.region, r.region_en, r.region_de,
+
+    // leíró mezők (ha van bennük kulcsszó, arra is találjon)
+    r.intro, r.intro_en, r.intro_de,
+    r.highlights, r.highlights_en, r.highlights_de
+  ];
+
+  return norm(parts.filter(Boolean).join(" "));
+}
     function renderList(qText = "") {
       const wrap = toursRoot.querySelector("#view-search .view-inner");
       if (!wrap) return;
@@ -1111,56 +1336,71 @@ sorted.forEach((r) => {
 
 
         // Kedvenc csillag a listában
-        const favBtn = document.createElement("button");
-        favBtn.type = "button";
-        favBtn.textContent = "☆";
-        favBtn.title = "Kedvenc kapcsolása";
-        favBtn.classList.add("fav-toggle");
-        favBtn.dataset.favLabel = encodedLabel;
-        favBtn.addEventListener("click", (ev) => {
-          ev.stopPropagation();
-          if (typeof addFavorite === "function") {
-            addFavorite(labelForFav);
-          }
-        });
-        right.appendChild(favBtn);
+const favBtn = document.createElement("button");
+favBtn.type = "button";
+favBtn.textContent = "☆";
+favBtn.title = "Kedvenc kapcsolása";
+favBtn.classList.add("fav-toggle");
+favBtn.dataset.favLabel = encodedLabel;
+favBtn.dataset.favId = r.__slug;
+favBtn.dataset.favId = r.__slug;
+favBtn.addEventListener("click", (ev) => {
+  console.error("CLICK NEARBY STAR");
+  ev.stopPropagation();
+  if (typeof addFavorite === "function") {
+    console.log("STAR CLICK", labelForFav);
+  addFavorite({
+  id: r.__slug,
+  hu: r.name_hu || labelForFav,
+  en: r.name_en || labelForFav,
+  de: r.name_de || labelForFav,
+  name: r.name_hu || labelForFav
+});
+    console.log("FAV AFTER ADD:", favorites);
+   window.updateFavoriteStars && window.updateFavoriteStars();
+    
+setTimeout(() => window.updateFavoriteStars && window.updateFavoriteStars(), 0);
 
-        const hasDetail = !!(
-          (r.intro && r.intro.trim()) ||
-          (r.highlights && r.highlights.trim()) ||
-          (r.access_notes && r.access_notes.trim())
-        );
-        if (hasDetail) {
-          const badge = document.createElement("span");
-          badge.className = "badge";
-          badge.textContent = (typeof window.t === "function" ? window.t("tours.list.details") : "Részletek");
-
-          right.appendChild(badge);
-        }
-        li.appendChild(right);
-
-        li.addEventListener("click", () => {
-          lastView = "view-search";
-          if (r.__slug) setSub(`detail/${r.__slug}`);
-        });
-        ul.appendChild(li);
-      });
-      wrap.appendChild(ul);
-
-      if (typeof window.updateFavoriteStars === "function") {
-        window.updateFavoriteStars();
-      }
-    }
-function renderDetail(slug) {
-  const host = toursRoot.querySelector("#detail-card");
-  if (!host) return;
-  host.innerHTML = "";
-
-  const r = bySlug.get(slug);
-  if (!r) {
-    host.innerHTML = '<p class="muted">A kért túra nem található.</p>';
-    return;
   }
+});
+right.appendChild(favBtn);
+
+const hasDetail = !!(
+  (r.intro && r.intro.trim()) ||
+  (r.highlights && r.highlights.trim()) ||
+  (r.access_notes && r.access_notes.trim())
+);
+if (hasDetail) {
+  const badge = document.createElement("span");
+  badge.className = "badge";
+  badge.textContent = (typeof window.t === "function" ? window.t("tours.list.details") : "Részletek");
+
+  right.appendChild(badge);
+}
+li.appendChild(right);
+
+li.addEventListener("click", () => {
+  lastView = "view-search";
+  if (r.__slug) setSub(`detail/${r.__slug}`);
+});
+ul.appendChild(li);
+});
+wrap.appendChild(ul);
+
+if (typeof window.updateFavoriteStars === "function") {
+  window.updateFavoriteStars();
+}
+}
+function renderDetail(slug) {
+const host = toursRoot.querySelector("#detail-card");
+if (!host) return;
+host.innerHTML = "";
+
+const r = bySlug.get(slug);
+if (!r) {
+host.innerHTML = '<p class="muted">A kért túra nem található.</p>';
+return;
+}
 
   // Fordítás segéd:
   // - ha nincs window.t => fallback
@@ -1209,7 +1449,7 @@ function renderDetail(slug) {
   favBtnDetail.textContent = "☆";
   favBtnDetail.title = tr("tours.fav.toggle", "Kedvenc kapcsolása");
   favBtnDetail.dataset.favLabel = encodedLabel;
-
+favBtnDetail.dataset.favId = slug;
   favBtnDetail.addEventListener("click", () => {
     let label;
     try {
@@ -1217,7 +1457,7 @@ function renderDetail(slug) {
     } catch {
       label = labelForFav;
     }
-    if (typeof addFavorite === "function") addFavorite(label);
+    if (typeof addFavorite === "function") addFavorite({ id: slug, name: label });
     if (typeof window.updateFavoriteStars === "function") {
       window.updateFavoriteStars();
     }
@@ -1436,7 +1676,7 @@ const popupHtml = `
         }</button><br/>`
       : ""
   }
-  <button data-fav-label="${encodedLabel}" class="leaflet-fav-btn fav-toggle">☆ ${
+  <button data-fav-id="${r.__slug}" data-fav-label="${encodedLabel}" class="leaflet-fav-btn fav-toggle">☆ ${
     typeof t === "function" ? t("tours.map.popup.fav") : "Kedvenc"
   }</button>
 </div>`;
@@ -1465,7 +1705,7 @@ const popupHtml = `
                   label = enc;
                 }
                 if (typeof addFavorite === "function") {
-                  addFavorite(label);
+                  addFavorite({ id: r.__slug, hu: r.name_hu || label, en: r.name_en || label, de: r.name_de || label, name: r.name_hu || label });
                 }
               });
             }
@@ -1746,10 +1986,18 @@ right.appendChild(navWrap);
         favBtn.title = "Kedvenc kapcsolása";
         favBtn.classList.add("fav-toggle");
         favBtn.dataset.favLabel = encodedLabel;
+        favBtn.dataset.favId = r.__slug;
         favBtn.addEventListener("click", (ev) => {
           ev.stopPropagation();
           if (typeof addFavorite === "function") {
-            addFavorite(labelForFav);
+            addFavorite({
+  id: r.__slug,
+  hu: r.name_hu || labelForFav,
+  en: r.name_en || labelForFav,
+  de: r.name_de || labelForFav,
+  name: r.name_hu || labelForFav
+});
+  window.updateFavoriteStars && window.updateFavoriteStars();
           }
         });
         right.appendChild(favBtn);
@@ -1757,6 +2005,7 @@ right.appendChild(navWrap);
         li.appendChild(right);
 
         li.addEventListener("click", (ev) => {
+  if (ev.target.closest(".fav-toggle")) return;
           if (ev.target.closest("a.navbtn")) return;
           lastView = "view-nearby";
           if (r.__slug) setSub(`detail/${r.__slug}`);
@@ -1925,6 +2174,7 @@ right.appendChild(navWrap);
   }
 
   const auth = firebase.auth();
+  window.auth = auth;
   let db = null;
   if (firebase.firestore) {
     db = firebase.firestore();
@@ -2151,6 +2401,8 @@ window.translations = {
 "contact.intro": "Kérdésed, észrevételed vagy javaslatod van a BalatonGo-val kapcsolatban? Írj nekünk.",
 "btn.cancel": "Mégse",
 "contact.submit": "Üzenet küldése",
+    "contact.sending": "Küldés...",
+    "contact.success": "✅ Üzenet elküldve! Köszönjük, hamarosan válaszolunk.",
 "menu.legal.note": "A jogi linkek külön, hivatalos oldalon nyílnak meg.",
 
     // ===== FŐOLDAL / HERO =====
@@ -2202,6 +2454,7 @@ window.translations = {
     "schedule.search": "🔎 Keresés",
     "schedule.hint":
       "ℹ️ Sétahajó esetén a kiindulási pont és az érkezési pont ugyanaz.",
+    "schedule.directOnly": "ℹ️ A menetrend csak közvetlen járatokat jelenít meg.",
     "schedule.selectFrom": "Válassz kiindulási kikötőt",
     "schedule.selectTo": "Válassz érkezési kikötőt",
     "schedule.missingInputs":
@@ -2209,10 +2462,16 @@ window.translations = {
     "schedule.noResults": "Nincs találat erre az útvonalra.",
     "schedule.type.regular": "Menetrendi hajó",
     "schedule.type.cruise": "Sétahajó",
+    "schedule.type.sunset": "Naplemente sétahajó",
+"schedule.type.chill": "Esti chill hajó",
+"schedule.type.party": "Bulihajó",
     "schedule.loading": "Betöltés…",
     "schedule.error_load": "Nem sikerült betölteni a menetrendi adatokat.",
     "schedule.minutes": "perc",
     "schedule.hours": "óra",
+    "schedule.route.cruise1h": "1 órás sétahajó",
+"schedule.route.sunset": "Naplemente sétahajó",
+"schedule.route.chill": "Chill hajó",
     "schedule.source":
       "Az adatok a Bahart Zrt. hivatalos szolgáltatásából származnak.",
     "schedule.seasonal": "ℹ️ A hajómenetrend szezonális. A téli időszakban általában nincs menetrend szerinti hajóforgalom a Balatonon.",
@@ -2275,6 +2534,7 @@ window.translations = {
     "tours.map.filter.placeholder": "Szűrés a térképen (pl. település, név)…",
     "title_nearby": "A közelben",
     "tours.nearby.radius": "Sugár:",
+    "nearby.hint": "ℹ️ A távolság légvonalban értendő, nem az útvonal szerint, a térképi sajátosságok miatt.",
 "units.km": "km",
 "tours.nearby.counter": "{n} pont",
 "tours.nearby.need_permission": "Kattints az „Engedélyezem a helyzetmeghatározást” gombra!",
@@ -2492,6 +2752,8 @@ window.translations = {
 "contact.intro": "Do you have a question, feedback or a suggestion about BalatonGo? Write to us.",
 "btn.cancel": "Cancel",
 "contact.submit": "Send message",
+    "contact.sending": "Sending...",
+    "contact.success": "✅ Message sent! Thanks — we’ll get back to you soon.",
 "menu.legal.note": "Legal links open on a separate official website.",
 
     "home.subtitle": "Discover Lake Balaton’s hidden beauties",
@@ -2543,8 +2805,15 @@ window.translations = {
     "schedule.missingInputs":
       "Choose departure port and date – I’ll help you find the next departure.",
     "schedule.noResults": "No sailings found for this route.",
+    "schedule.directOnly": "ℹ️ The schedule shows direct routes only.",
     "schedule.type.regular": "Scheduled boat",
     "schedule.type.cruise": "Cruise boat",
+    "schedule.type.sunset": "Sunset cruise",
+"schedule.type.chill": "Evening chill boat",
+    "schedule.route.cruise1h": "1-hour cruise",
+"schedule.route.sunset": "Sunset cruise",
+"schedule.route.chill": "Chill boat",
+"schedule.type.party": "Party boat",
     "schedule.loading": "Loading…",
     "schedule.error_load": "Could not load timetable data.",
     "schedule.minutes": "minutes",
@@ -2608,6 +2877,7 @@ window.translations = {
     "title_map": "On map",
     "title_nearby": "Nearby",
     "tours.nearby.radius": "Radius:",
+    "nearby.hint": "ℹ️ Distance is calculated as the crow flies, not by route, due to map characteristics.",
 "units.km": "km",
 "tours.nearby.counter": "{n} points",
 "tours.nearby.need_permission": "Tap “Enable location access” to show nearby places.",
@@ -2823,7 +3093,9 @@ window.translations = {
 "contact.title": "Kontakt",
 "contact.intro": "Hast du eine Frage, Anmerkung oder einen Vorschlag zu BalatonGo? Schreib uns.",
 "btn.cancel": "Abbrechen",
+    "contact.sending": "Wird gesendet...",
 "contact.submit": "Nachricht senden",
+    "contact.success": "✅ Nachricht gesendet! Danke — wir melden uns bald.",
 "menu.legal.note": "Rechtliche Links öffnen sich auf einer separaten offiziellen Website.",
 
     "home.subtitle": "Entdecke die versteckten Schönheiten des Balaton",
@@ -2875,9 +3147,16 @@ window.translations = {
     "schedule.selectTo": "Wähle den Zielhafen",
     "schedule.missingInputs":
       "Bitte wähle Abfahrtshafen und Datum – ich helfe dir, die nächste Verbindung zu finden.",
+    "schedule.directOnly": "ℹ️ Der Fahrplan zeigt nur Direktverbindungen an.",
     "schedule.noResults": "Für diese Strecke wurde keine Verbindung gefunden.",
     "schedule.type.regular": "Linien-Schiff",
     "schedule.type.cruise": "Rundfahrt / Ausflugsschiff",
+    "schedule.type.sunset": "Sonnenuntergangsfahrt",
+"schedule.type.chill": "Chill-Boot am Abend",
+"schedule.type.party": "Partyboot",
+    "schedule.route.cruise1h": "1-stündige Rundfahrt",
+"schedule.route.sunset": "Sonnenuntergangsfahrt",
+"schedule.route.chill": "Chill-Boot",
     "schedule.loading": "Wird geladen…",
     "schedule.error_load": "Die Fahrplandaten konnten nicht geladen werden.",
     "schedule.minutes": "Minuten",
@@ -2943,6 +3222,7 @@ window.translations = {
     "tours.map.srtitle": "Kartenansicht",
     "title_nearby": "In der Nähe",
     "tours.nearby.radius": "Radius:",
+    "nearby.hint": "ℹ️ Die Entfernung wird in Luftlinie berechnet, nicht nach Route, aufgrund kartografischer Gegebenheiten.",
 "units.km": "km",
 "tours.nearby.counter": "{n} Punkte",
 "tours.nearby.need_permission": "Tippe auf „Standortzugriff erlauben“, um Orte in der Nähe zu sehen.",
@@ -3076,9 +3356,11 @@ langBtns.forEach((btn) => {
      MENÜ + MODÁLOK
      ========================= */
   const sideMenu = document.getElementById("sideMenu");
+  console.log("sideMenu:", sideMenu);
   const openMenuBtn = document.getElementById("openMenuBtn");
   const closeMenuBtn = document.getElementById("closeMenuBtn");
   const modals = document.querySelectorAll(".modal");
+  console.log("MODALOK SZÁMA:", modals.length, [...modals].map(m => m.id));
 
   function openMenu() {
     if (!sideMenu) return;
@@ -3115,13 +3397,14 @@ langBtns.forEach((btn) => {
 
   if (openMenuBtn) {
     openMenuBtn.addEventListener("click", openMenu);
+    console.log("MENÜ: listener ráment");
   }
   if (closeMenuBtn) {
     closeMenuBtn.addEventListener("click", closeMenu);
   }
 
   function closeAllModals() {
-    modals.forEach((m) => {
+       modals.forEach((m) => {
       m.classList.remove("active");
       m.setAttribute("aria-hidden", "true");
     });
@@ -3134,16 +3417,57 @@ langBtns.forEach((btn) => {
     closeMenu();
     modal.classList.add("active");
     modal.setAttribute("aria-hidden", "false");
+    // ✅ Login modal reset (ha korábban a "elfelejtett jelszó" panel elrejtett mindent)
+if (id === "loginModal") {
+  const loginFormSection = document.getElementById("loginFormSection");
+  const forgotPanel = document.getElementById("forgotPasswordPanel");
+  const loginStatusText = document.getElementById("loginStatusText");
+  const loginErrorMsg = document.getElementById("loginErrorMsg");
+
+  // alap nézet vissza
+  if (loginFormSection) loginFormSection.classList.remove("hidden");
+  if (loginStatusText) loginStatusText.classList.remove("hidden");
+  if (loginErrorMsg) loginErrorMsg.classList.remove("hidden");
+
+  // forgot panel elrejtése
+  if (forgotPanel) {
+    forgotPanel.classList.add("hidden");
+    forgotPanel.setAttribute("aria-hidden", "true");
   }
 
+  // checkbox + gombok visszahozása, ha léteznek
+  const loginAccept = document.getElementById("loginAccept");
+  const acceptLabel = loginAccept ? loginAccept.closest("label.checkbox") : null;
+  if (acceptLabel) acceptLabel.classList.remove("hidden");
+
+  const loginBtn = document.getElementById("loginBtn");
+  const loginActions = loginBtn ? loginBtn.closest(".modal-actions") : null;
+  if (loginActions) loginActions.classList.remove("hidden");
+}
+    setTimeout(() => {
+  const cs = window.getComputedStyle(modal);
+  console.log("MODAL ÁLLAPOT:", id, {
+    display: cs.display,
+    visibility: cs.visibility,
+    opacity: cs.opacity,
+    zIndex: cs.zIndex,
+    rect: modal.getBoundingClientRect()
+  });
+}, 0);
+    // fókusz a modálra, hogy ne maradjon "menü gombon" és ne zárja vissza
+const firstFocusable = modal.querySelector('button, [href], input, textarea, select, [tabindex]:not([tabindex="-1"])');
+(firstFocusable || modal).focus?.();
+  }
+window.openModal = openModal;
   // *** Egységes, delegált menükezelés ***
   // Bármely .menu-link[data-modal] gombra kattintasz, mindig megnyitja a megfelelő modált.
   document.addEventListener("click", (e) => {
     const btn = e.target.closest(".menu-link[data-modal]");
     if (!btn) return;
     e.preventDefault();
-    const targetId = btn.getAttribute("data-modal");
+        const targetId = btn.getAttribute("data-modal");
     if (!targetId) return;
+    console.log("MENÜ MODAL KATT:", targetId, document.getElementById(targetId));
     openModal(targetId);
   });
 
@@ -3155,12 +3479,13 @@ langBtns.forEach((btn) => {
   });
 
   modals.forEach((modal) => {
-    modal.addEventListener("click", (e) => {
-      if (e.target === modal) {
-        closeAllModals();
-      }
-    });
+  modal.addEventListener("click", (e) => {
+    // TESZT: ne zárjon most kattintásra
+    // if (e.target === modal) {
+    //   closeAllModals();
+    // }
   });
+});
 
   document.addEventListener("keydown", (e) => {
     if (e.key === "Escape") {
@@ -3253,7 +3578,11 @@ langBtns.forEach((btn) => {
     const loginActions = loginBtn ? loginBtn.closest(".modal-actions") : null;
 
     const emailRegexLocal = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
+// ✅ Biztonság: a forgot panel ne legyen a loginFormSection gyereke,
+// mert showForgotPanel elrejti a loginFormSection-t.
+if (forgotPanel && loginFormSection && loginFormSection.contains(forgotPanel)) {
+  loginFormSection.parentElement.insertBefore(forgotPanel, loginFormSection.nextSibling);
+}
     // Fordítás helper: ha a t() visszaadja a kulcsot (hiányzó fordítás),
     // akkor kulturált fallback szöveget írunk ki, ne kulcsot.
     function tr(key, fallback) {
@@ -3275,6 +3604,7 @@ langBtns.forEach((btn) => {
       if (loginFormSection) loginFormSection.classList.add("hidden");
       if (acceptLabel) acceptLabel.classList.add("hidden");
       if (loginErrorMsg) loginErrorMsg.classList.add("hidden");
+      if (loginStatusText) loginStatusText.classList.add("hidden");
       if (loginActions) loginActions.classList.add("hidden");
 
       forgotPanel.classList.remove("hidden");
@@ -3291,7 +3621,7 @@ langBtns.forEach((btn) => {
       forgotPanel.setAttribute("aria-hidden", "true");
       setForgotMsg("");
 
-      if (loginFormSection) loginFormSection.classList.remove("hidden");
+     if (!currentUser && loginFormSection) loginFormSection.classList.remove("hidden");
       if (acceptLabel) acceptLabel.classList.remove("hidden");
       if (loginErrorMsg) loginErrorMsg.classList.remove("hidden");
       if (loginActions) loginActions.classList.remove("hidden");
@@ -3299,9 +3629,9 @@ langBtns.forEach((btn) => {
       if (typeof updateLoginButtonEnabled === "function") updateLoginButtonEnabled();
     }
 
-    forgotLinkBtn.addEventListener("click", () => {
-      showForgotPanel();
-    });
+  forgotLinkBtn.addEventListener("click", () => {
+  showForgotPanel();
+});
 
     forgotBackBtn.addEventListener("click", () => {
       hideForgotPanel();
@@ -3435,45 +3765,71 @@ langBtns.forEach((btn) => {
             email,
             password
           );
-        } catch (err) {
-          if (err.code === "auth/user-not-found") {
-            credential = await auth.createUserWithEmailAndPassword(
-              email,
-              password
-            );
-          } else {
-            throw err;
-          }
-        }
+       } catch (err) {
+  // Firebase néha "auth/internal-error" / "INVALID_LOGIN_CREDENTIALS" kóddal dobja azt,
+  // aminek user-not-found lenne. Ilyenkor is próbáljuk a regisztrációt.
+  const code = err && err.code;
+
+  if (
+    code === "auth/user-not-found" ||
+    code === "auth/invalid-login-credentials" ||
+    code === "auth/internal-error"
+  ) {
+    try {
+      credential = await auth.createUserWithEmailAndPassword(email, password);
+    } catch (e2) {
+      // ha már létezik az email, akkor ez NEM regisztrációs eset → dobjuk vissza az eredeti hibát
+      if (e2 && e2.code === "auth/email-already-in-use") throw err;
+      throw e2;
+    }
+  } else {
+    throw err;
+  }
+}
 
         const user = credential.user;
+        updateLoginMenuLabel(user);
 
-        if (user && displayNameInput) {
-          await user.updateProfile({
-            displayName: displayNameInput,
-          });
-        }
-
+      if (user && displayNameInput) {
+  await user.updateProfile({
+    displayName: displayNameInput.trim(),
+  });
+        await auth.currentUser.reload();
+  updateLoginMenuLabel(auth.currentUser);
+}
         loginPassword.value = "";
-      } catch (err) {
-        console.error(err);
-        let msg = t("login.error.generic");
-        if (err.code === "auth/wrong-password") {
-          msg = t("login.error.wrong_password");
-        } else if (err.code === "auth/invalid-email") {
-          msg = t("login.error.invalid_email");
-        } else if (err.code === "auth/email-already-in-use") {
-          msg = t("login.error.email_in_use");
-        }
-        loginErrorMsg.textContent = msg;
-      } finally {
-        loginBtn.disabled = false;
-        loginBtn.classList.remove("disabled");
-        loginBtn.textContent = "Belépek / Regisztrálok";
-        updateLoginButtonEnabled();
-      }
-    });
+} catch (err) {
+  console.error(err);
+
+  let msg = t("login.error.generic");
+
+  if (err.code === "auth/wrong-password") {
+    msg = t("login.error.wrong_password");
+
+  } else if (err.code === "auth/invalid-email") {
+    msg = t("login.error.invalid_email");
+
+  } else if (err.code === "auth/email-already-in-use") {
+    msg = t("login.error.email_in_use");
+
+  } else if (err.code === "auth/invalid-login-credentials") {
+    msg = "Hibás e-mail vagy jelszó.";
+
+  } else if (err.code === "auth/internal-error") {
+    msg = "Hibás e-mail vagy jelszó.";
   }
+
+  console.error("AUTH DEBUG:", err.code, err.message);
+  loginErrorMsg.textContent = msg;
+
+} finally {
+  loginBtn.disabled = false;
+  loginBtn.classList.remove("disabled");
+  loginBtn.textContent = "Belépek / Regisztrálok";
+  updateLoginButtonEnabled();
+}
+});
+}
 
   // Profil-modálban lévő kijelentkezés gomb
   if (loginLogoutBtn) {
@@ -3513,10 +3869,9 @@ langBtns.forEach((btn) => {
 
   // A kedvencek mezőt ne lehessen kézzel szerkeszteni –
   // csak a csillag gombok töltsék be automatikusan.
-  if (favoriteNameInput) {
-    favoriteNameInput.readOnly = true;
-  favoriteNameInput.placeholder = t("favorites.hint");
-  }
+ if (favoriteNameInput) {
+  favoriteNameInput.style.display = "none";
+}
 window.refreshFavoritesI18n = function () {
   // placeholder frissítés nyelvváltáskor
   if (favoriteNameInput) {
@@ -3620,17 +3975,28 @@ window.refreshFavoritesI18n = function () {
     }
 
     favorites.forEach((item, index) => {
-      const name =
-        typeof item === "string"
-          ? item
-          : (item && item.name) || String(item);
+      const lang = window.currentLang || "hu";
 
-      const li = document.createElement("li");
-      li.classList.add("favorite-item");
+let name = "";
 
-      const span = document.createElement("span");
-      span.textContent = name;
+if (typeof item === "string") {
+  name = item;
+} else if (item) {
+  if (lang === "hu") {
+    name = item.hu || item.name || "";
+  } else if (lang === "en") {
+    name = item.en || item.name || item.hu || "";
+  } else if (lang === "de") {
+    name = item.de || item.name || item.hu || "";
+  }
+}
 
+const li = document.createElement("li");
+li.classList.add("favorite-item");
+
+const span = document.createElement("span");
+span.textContent = name;
+span.title = name;
       const delBtn = document.createElement("button");
       delBtn.textContent = "✕";
       delBtn.classList.add("favorite-delete-btn");
@@ -3651,11 +4017,20 @@ window.refreshFavoritesI18n = function () {
 
   // Csillagok frissítése – minden olyan gombnál, amin van data-fav-label
   function updateFavoriteStars() {
-    const favNorms = favorites.map((n) =>
-      String(n || "").trim().toLowerCase()
-    );
+    const norm = (s) => String(s || "").trim().toLowerCase();
+
+    const getItemKey = (item) => {
+      if (typeof item === "string") return norm(item);
+      if (!item) return "";
+      // stabil kulcs: id ha van, különben név-fallback
+      if (item.id) return "id:" + norm(item.id);
+      return norm(item.hu || item.en || item.de || item.name || "");
+    };
+
+    const favKeys = new Set(favorites.map(getItemKey).filter(Boolean));
+
     const btns = document.querySelectorAll("[data-fav-label]");
-    btns.forEach((btn) => {
+        btns.forEach((btn) => {
       const encoded = btn.getAttribute("data-fav-label") || "";
       let label;
       try {
@@ -3663,42 +4038,92 @@ window.refreshFavoritesI18n = function () {
       } catch {
         label = encoded;
       }
-      const isFav = favNorms.includes(
-        String(label || "").trim().toLowerCase()
-      );
+
+      // ha van data-fav-id, az a legjobb; ha nincs, marad a label
+      const btnId = btn.getAttribute("data-fav-id");
+      const btnKey = btnId ? "id:" + norm(btnId) : "";
+
+      const isFav = favKeys.has(btnKey);
 
       btn.classList.toggle("is-fav", isFav);
-      // ikon frissítése
       if (btn.tagName === "BUTTON") {
         btn.textContent = isFav ? "⭐" : "☆";
       }
     });
   }
   window.updateFavoriteStars = updateFavoriteStars;
-
+// Nyelvváltás után csillagok + kedvencek lista frissítése
+window.addEventListener("storage", () => {
+  if (typeof window.updateFavoriteStars === "function") {
+    window.updateFavoriteStars();
+  }
+  if (typeof renderFavorites === "function") {
+    renderFavorites();
+  }
+});
   // Központi függvény: kedvenc kapcsolása (be/ki kapcsolás)
-  function addFavorite(rawName) {
+  function addFavorite(rawItem) {
     if (!currentUser) {
       alert(t("favorites.alert.must_login"));
       return;
     }
-    const name = (rawName || "").trim();
-    if (!name) return;
 
-    const idx = favorites.findIndex((item) => {
-      const n =
-        typeof item === "string"
-          ? item
-          : (item && item.name) || String(item || "");
-      return n.trim().toLowerCase() === name.toLowerCase();
-    });
+    const lang = document.documentElement.getAttribute("lang") || "hu";
+
+    // Egységesítsük: mindig objektumot tárolunk, ha lehet
+   let itemObj;
+if (typeof rawItem === "string") {
+  const name = rawItem.trim();
+  if (!name) return;
+
+  itemObj = {
+    hu: name,
+    en: name,
+    de: name,
+    name: name
+  };
+
+} else if (rawItem && typeof rawItem === "object") {
+  const fallbackName = (
+    rawItem[`name_${lang}`] ||
+    rawItem[lang] ||
+    rawItem.name_hu || rawItem.name_en || rawItem.name_de ||
+    rawItem.hu || rawItem.en || rawItem.de ||
+    rawItem.name ||
+    ""
+  ).trim();
+  if (!fallbackName) return;
+
+  itemObj = {
+    id: rawItem.id || rawItem.key || rawItem.placeId || undefined,
+    hu: rawItem.name_hu || rawItem.hu || fallbackName,
+    en: rawItem.name_en || rawItem.en || fallbackName,
+    de: rawItem.name_de || rawItem.de || fallbackName,
+    name: rawItem.name || fallbackName
+  };
+
+      // ha az aktuális nyelv szerinti mező hiányzik, tegyük bele
+      if (!itemObj[lang]) itemObj[lang] = fallbackName;
+    } else {
+      return;
+    }
+
+    const norm = (s) => String(s || "").trim().toLowerCase();
+    const getKey = (item) => {
+      if (typeof item === "string") return norm(item);
+      if (!item) return "";
+      if (item.id) return "id:" + norm(item.id);
+      return norm(item.hu || item.en || item.de || item.name || "");
+    };
+
+    const newKey = getKey(itemObj);
+
+    const idx = favorites.findIndex((it) => getKey(it) === newKey);
 
     if (idx !== -1) {
-      // már benne van → töröljük (toggle OFF)
       favorites.splice(idx, 1);
     } else {
-      // még nincs → hozzáadjuk (toggle ON)
-      favorites.push(name);
+      favorites.push(itemObj);
     }
 
     saveFavorites();
@@ -3706,6 +4131,7 @@ window.refreshFavoritesI18n = function () {
     updateFavoriteStars();
   }
   window.addFavorite = addFavorite;
+
 
   if (addFavoriteBtn) {
     addFavoriteBtn.addEventListener("click", () => {
@@ -3762,26 +4188,45 @@ window.refreshFavoritesI18n = function () {
     });
   });
 
-  if (loginFavoritesBtn) {
-    loginFavoritesBtn.addEventListener("click", () => {
-      openModal("favoritesModal");
-      updateFavoriteStars();
-    });
-  }
+if (loginFavoritesBtn) {
+  loginFavoritesBtn.addEventListener("click", () => {
+    
 
-  /* =========================
-     AUTH ÁLLAPOT FIGYELÉSE
-     ========================= */
+    // 2) nyissuk meg a kedvenceket
+    document.getElementById("favoritesModal").classList.add("active");
+
+    updateFavoriteStars();
+  });
+}
+
+/* =========================
+   AUTH ÁLLAPOT FIGYELÉSE – EGYSÉGES (csak .hidden)
+   ========================= */
+
 auth.onAuthStateChanged((user) => {
+  window.currentLang = localStorage.getItem("balatongo_lang") || "hu";
+
+  console.log("AUTH RUN");
   currentUser = user || null;
 
+  // Biztonság: ha valami elem nincs meg, ne omoljon össze
   if (!loginFormSection || !loginProfileSection) return;
 
+  // 1) Mindig induljunk tiszta állapotból (ne maradjon korábbi style/display)
+  loginFormSection.style.display = "";
+  loginProfileSection.style.display = "";
+
   if (user) {
+    // ✅ Belépve: form EL, profil BE
     loginFormSection.style.display = "none";
     loginProfileSection.classList.remove("hidden");
-
-    // ✅ Fordítás: ne textContent-et írjunk, hanem data-i18n kulcsot
+    if (loginStatusText) loginStatusText.classList.add("hidden");
+console.log("FORM CLASS:", loginFormSection.className);
+console.log("PROFILE CLASS:", loginProfileSection.className);
+    console.log("loginFormSection DB:", document.querySelectorAll("#loginFormSection").length);
+console.log("loginProfileSection DB:", document.querySelectorAll("#loginProfileSection").length);
+console.log("loginModal DB:", document.querySelectorAll("#loginModal").length);
+    
     if (loginStatusText) {
       loginStatusText.setAttribute("data-i18n", "login.status.logged_in");
     }
@@ -3790,35 +4235,23 @@ auth.onAuthStateChanged((user) => {
       user.displayName ||
       (user.email ? user.email.split("@")[0] : "Felhasználó");
 
-    // ezek adatok, maradhatnak textContent-ként
-    if (loginProfileNameDisplay) {
-      loginProfileNameDisplay.textContent = niceName;
-    }
-    if (loginProfileEmail) {
-      loginProfileEmail.textContent = user.email || "";
-    }
+    if (loginProfileNameDisplay) loginProfileNameDisplay.textContent = niceName;
+    if (loginProfileEmail) loginProfileEmail.textContent = user.email || "";
 
     loadAvatarForUser(user);
     loadFavoritesForUser(user.uid);
   } else {
-    loginFormSection.style.display = "block";
+    // ✅ Kijelentkezve: form BE, profil EL
+    loginFormSection.classList.remove("hidden");
     loginProfileSection.classList.add("hidden");
 
-    // ✅ Fordítás: ne textContent-et írjunk, hanem data-i18n kulcsot
     if (loginStatusText) {
       loginStatusText.setAttribute("data-i18n", "login.status.logged_out");
     }
 
-    // ezek adatok/placeholderek, maradhatnak
-    if (loginProfileNameDisplay) {
-      loginProfileNameDisplay.textContent = "Felhasználó";
-    }
-    if (loginProfileEmail) {
-      loginProfileEmail.textContent = "email@example.com";
-    }
-    if (loginAvatarEmoji) {
-      loginAvatarEmoji.textContent = "👤";
-    }
+    if (loginProfileNameDisplay) loginProfileNameDisplay.textContent = "Felhasználó";
+    if (loginProfileEmail) loginProfileEmail.textContent = "email@example.com";
+    if (loginAvatarEmoji) loginAvatarEmoji.textContent = "👤";
 
     loadFavoritesForUser(null);
   }
@@ -3826,7 +4259,7 @@ auth.onAuthStateChanged((user) => {
   updateLoginButtonEnabled();
   updateLoginMenuLabel(user || null);
 
-  // ✅ most fogja a data-i18n kulcsokat tényleges nyelvre cserélni
+  // Fordítás frissítése
   if (typeof applyTranslationsToDom === "function") {
     applyTranslationsToDom();
   }
@@ -3863,7 +4296,7 @@ auth.onAuthStateChanged((user) => {
 
     contactSubmitBtn.disabled = true;
     const oldLabel = contactSubmitBtn.textContent;
-    contactSubmitBtn.textContent = "Küldés...";
+    contactSubmitBtn.textContent = t("contact.sending");
     if (contactStatus) {
       contactStatus.textContent = "";
     }
@@ -3896,14 +4329,11 @@ auth.onAuthStateChanged((user) => {
         );
         throw new Error("EmailJS SDK nem töltődött be.");
       }
-
-      const templateParams = {
-        from_name: name || "(nem adott meg nevet)",
-        reply_to: email || "nincs megadott e-mail",
-        message: message,
-        sent_from: "BalatonGo kapcsolat űrlap",
-        sent_time: new Date().toLocaleString("hu-HU"),
-      };
+const templateParams = {
+  name: name || "(nem adott meg nevet)",
+  email: email || "nincs megadott e-mail",
+  message: message,
+};
 
       console.log("EmailJS küldés indul:", {
         service: EMAILJS_SERVICE_ID,
@@ -3918,12 +4348,20 @@ auth.onAuthStateChanged((user) => {
       );
 
       console.log("EmailJS siker:", result);
-
       if (contactStatus) {
         contactStatus.textContent = t("contact.success");
         contactStatus.style.color = "#4ade80";
       }
 
+      // 4 mp múlva automatikus bezárás
+      setTimeout(() => {
+        const m = document.getElementById("contactModal");
+        if (!m) return;
+        m.classList.remove("active");
+        m.setAttribute("aria-hidden", "true");
+      }, 4000);
+
+      // mezők ürítése
       if (contactNameInput) contactNameInput.value = "";
       if (contactEmailInput) contactEmailInput.value = "";
       if (contactMessageInput) contactMessageInput.value = "";
