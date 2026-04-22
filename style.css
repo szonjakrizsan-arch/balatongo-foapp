@@ -79,7 +79,7 @@ body {
   border-radius: 14px;
   box-shadow: 0 8px 28px rgba(0, 0, 0, 0.4);
   backdrop-filter: blur(6px);
-  max-width: 900px;
+  max-width: 100%;
   margin: 16px auto;
   color: #fff !important;
 }
