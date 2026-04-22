@@ -1,5 +1,8 @@
 /* ===== BalatonGo – Összefésült stílus ===== */
-
+html, body {
+  width: 100%;
+  overflow-x: hidden;
+}
 /* ===== Globál + változók ===== */
 :root {
   /* Menü / UI színek */
