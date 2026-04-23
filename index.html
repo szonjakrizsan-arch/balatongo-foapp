@@ -1387,5 +1387,12 @@
   <!-- JS KÖNYVTÁRAK A MENÜHÖZ / EMAILHEZ -->
   <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 <script src="script.js"></script>
+    <script>
+if ("serviceWorker" in navigator) {
+  navigator.serviceWorker.register("service-worker.js")
+    .then(() => console.log("SW regisztrálva"))
+    .catch(err => console.log("SW hiba:", err));
+}
+    </script>
   </body>
 </html>
