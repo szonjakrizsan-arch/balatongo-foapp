@@ -4,6 +4,7 @@ const URLS_TO_CACHE = [
   "/balatongo-foapp/index.html",
   "/balatongo-foapp/style.css",
   "/balatongo-foapp/script.js",
+  "/balatongo-foapp/manifest.json",
   "/balatongo-foapp/icon-192.png",
   "/balatongo-foapp/icon-512.png"
 ];
