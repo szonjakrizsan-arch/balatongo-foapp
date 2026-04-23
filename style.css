@@ -56,6 +56,7 @@ body {
   margin: 0;
   font-family: "Segoe UI", system-ui, Arial, sans-serif;
   color: #fff;
+  background-color: #0a84ff;
   background: var(--bg-url) no-repeat center center / cover fixed;
   -webkit-font-smoothing: antialiased;
   transition: background 0.4s ease-in-out;
