@@ -1,4 +1,4 @@
-const CACHE_NAME = "balatongo-v2";
+const CACHE_NAME = "balatongo-v3";
 const URLS_TO_CACHE = [
   "/balatongo-foapp/",
   "/balatongo-foapp/index.html",
