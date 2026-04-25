@@ -3825,7 +3825,7 @@ if (forgotPanel && loginFormSection && loginFormSection.contains(forgotPanel)) {
 } finally {
   loginBtn.disabled = false;
   loginBtn.classList.remove("disabled");
-  loginBtn.textContent = "Belépek / Regisztrálok";
+  loginBtn.textContent = t("login.button");
   updateLoginButtonEnabled();
 }
 });
