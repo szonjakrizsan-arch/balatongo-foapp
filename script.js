@@ -1339,7 +1339,7 @@ sorted.forEach((r) => {
 const favBtn = document.createElement("button");
 favBtn.type = "button";
 favBtn.textContent = "☆";
-favBtn.title = t("favorites.toggle");
+favBtn.title = window.t("favorites.toggle");
 favBtn.classList.add("fav-toggle");
 favBtn.dataset.favLabel = encodedLabel;
 favBtn.dataset.favId = r.__slug;
@@ -1982,7 +1982,7 @@ right.appendChild(navWrap);
         const favBtn = document.createElement("button");
         favBtn.type = "button";
         favBtn.textContent = "☆";
-        favBtn.title = t("favorites.toggle");
+        favBtn.title = window.t("favorites.toggle");
         favBtn.classList.add("fav-toggle");
         favBtn.dataset.favLabel = encodedLabel;
         favBtn.dataset.favId = r.__slug;
