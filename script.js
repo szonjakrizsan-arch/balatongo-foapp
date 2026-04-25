@@ -3829,6 +3829,7 @@ if (forgotPanel && loginFormSection && loginFormSection.contains(forgotPanel)) {
   loginBtn.disabled = false;
   loginBtn.classList.remove("disabled");
   loginBtn.textContent = t("login.submit");
+  document.documentElement.lang = currentLang;
   updateLoginButtonEnabled();
 }
 });
