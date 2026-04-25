@@ -3813,10 +3813,10 @@ if (forgotPanel && loginFormSection && loginFormSection.contains(forgotPanel)) {
     msg = t("login.error.email_in_use");
 
   } else if (err.code === "auth/invalid-login-credentials") {
-    msg = "Hibás e-mail vagy jelszó.";
+    msg = t("login.error.invalid_credentials");
 
   } else if (err.code === "auth/internal-error") {
-    msg = "Hibás e-mail vagy jelszó.";
+    msg = t("login.error.invalid_credentials");
   }
 
   console.error("AUTH DEBUG:", err.code, err.message);
