@@ -1724,7 +1724,7 @@ const popupHtml = `
         if (statusEl) statusEl.textContent = "";
       } else {
         map.setView([46.85, 17.9], 9);
-        if (statusEl) statusEl.textContent = "Nincs megjeleníthető pont.";
+        if (statusEl) statusEl.textContent = t("tours.map.no_points");
       }
       if (counterEl) {
   const txt = (typeof t === "function"
