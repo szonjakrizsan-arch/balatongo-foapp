@@ -34,7 +34,7 @@ document.addEventListener("DOMContentLoaded", () => {
     document.addEventListener("DOMContentLoaded", move, { once: true });
   }
 })();
-   let currentLang = "hu";
+   let currentLang = localStorage.getItem("balatongo_lang") || "hu";
   
  function t(key) {
   const all = window.translations || {};
