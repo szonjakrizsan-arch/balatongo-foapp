@@ -1339,7 +1339,7 @@ sorted.forEach((r) => {
 const favBtn = document.createElement("button");
 favBtn.type = "button";
 favBtn.textContent = "☆";
-favBtn.title = "Kedvenc kapcsolása";
+favBtn.title = t("favorites.toggle");
 favBtn.classList.add("fav-toggle");
 favBtn.dataset.favLabel = encodedLabel;
 favBtn.dataset.favId = r.__slug;
@@ -1982,7 +1982,7 @@ right.appendChild(navWrap);
         const favBtn = document.createElement("button");
         favBtn.type = "button";
         favBtn.textContent = "☆";
-        favBtn.title = "Kedvenc kapcsolása";
+        favBtn.title = t("favorites.toggle");
         favBtn.classList.add("fav-toggle");
         favBtn.dataset.favLabel = encodedLabel;
         favBtn.dataset.favId = r.__slug;
@@ -2202,6 +2202,7 @@ window.translations = {
     // ===== MENÜ / HEADER =====
     "app.logo": "BalatonGo",
     "menu.title": "BalatonGo – Menü",
+    "menu.profile": "Profilom",
     "menu.subtitle": "Válassz funkciót vagy információt.",
     "menu.language.label": "Nyelv:",
     "menu.login": "Felhasználói belépés",
@@ -2231,10 +2232,12 @@ window.translations = {
     "favorites.placeholder.add_by_star":
   "Kedvencet a kártyák csillagával adhatsz hozzá.",
 "favorites.hint": "Kedvencet a kártyák csillagával adhatsz hozzá.",
+    "favorites.toggle": "Kedvenc kapcsolása",
+    "favorites.delete": "Kedvenc törlése",
     "login.accept.prefix": "Kijelentem, hogy elolvastam és elfogadom az",
     "login.accept.aszf": "ÁSZF",
 "login.accept.privacy": "Adatkezelési Tájékoztató",
-
+"login.profile.default_name": "Felhasználó",
 "login.accept.middle": "-et és az",
 "login.accept.suffix": ".",
 "login.submit": "Belépek / Regisztrálok",
@@ -2557,6 +2560,7 @@ window.translations = {
     "menu.title": "BalatonGo – Menu",
     "menu.subtitle": "Choose a function or information.",
     "menu.language.label": "Language:",
+    "menu.profile": "My profile",
     "menu.login": "User login",
     "menu.favorites": "Favorites",
     "menu.contact": "Contact",
@@ -2583,7 +2587,7 @@ window.translations = {
 "login.accept.suffix": ".",
 "login.accept.aszf": "Terms of Service",
 "login.accept.privacy": "Privacy Policy",
-
+"login.profile.default_name": "User",
 "login.favorites.btn": "Favorites",
 "login.settings.btn": "Settings",
 "login.logout": "Log out",
@@ -2608,6 +2612,8 @@ window.translations = {
 "favorites.title": "Favorites",
 "favorites.intro": "Here you can see your favorites.",
 "favorites.empty": "You don't have any favorites yet.",
+    "favorites.toggle": "Toggle favorite",
+    "favorites.delete": "Remove favorite",
 "favorites.info.logged_in": "Add favorites by tapping the star on the cards.",
 "login.settings.title": "Profile settings",
 "login.settings.subtitle": "Choose an avatar:",
@@ -2903,6 +2909,7 @@ window.translations = {
   de: {
     "app.logo": "BalatonGo",
     "menu.title": "BalatonGo – Menü",
+    "menu.profile": "Mein Profil",
     "menu.subtitle": "Wähle eine Funktion oder Information.",
     "menu.language.label": "Sprache:",
     "menu.login": "Benutzeranmeldung",
@@ -2931,12 +2938,13 @@ window.translations = {
 "login.accept.suffix": ".",
 "login.accept.aszf": "AGB",
 "login.accept.privacy": "Datenschutzerklärung",
-
+"login.profile.default_name": "Benutzer",
 "login.favorites.btn": "Favoriten",
 "login.settings.btn": "Einstellungen",
 "login.logout": "Abmelden",
 "btn.close": "Schließen",
 "favorites.info.logged_in": "Füge Favoriten über den Stern auf den Karten hinzu.",
+    "favorites.toggle": "Favorit umschalten",
 "login.settings.title": "Profileinstellungen",
 "login.settings.subtitle": "Wähle einen Avatar:",
 "login.settings.hint": "Der Avatar wird nur in der BalatonGo-App angezeigt und in deinem Browser gespeichert.",
@@ -2960,6 +2968,7 @@ window.translations = {
 "favorites.empty": "Du hast noch keine Favoriten.",
 "favorites.placeholder.add_by_star":
   "Füge Favoriten hinzu, indem du auf den Stern auf den Karten tippst.",
+    "favorites.delete": "Favorit entfernen",
 "settings.title": "Profileinstellungen",
 "settings.choose_avatar": "Wähle einen Avatar:",
 "settings.avatar_note": "Der Avatar wird nur in der BalatonGo-App angezeigt und in deinem Browser gespeichert.",
@@ -4015,6 +4024,7 @@ span.title = name;
       const delBtn = document.createElement("button");
       delBtn.textContent = "✕";
       delBtn.classList.add("favorite-delete-btn");
+      delBtn.title = t("favorites.delete");
       delBtn.addEventListener("click", () => {
         favorites.splice(index, 1);
         saveFavorites();
@@ -4264,7 +4274,7 @@ console.log("loginModal DB:", document.querySelectorAll("#loginModal").length);
       loginStatusText.setAttribute("data-i18n", "login.status.logged_out");
     }
 
-    if (loginProfileNameDisplay) loginProfileNameDisplay.textContent = "Felhasználó";
+    if (loginProfileNameDisplay) loginProfileNameDisplay.textContent = t("login.profile.default_name");
     if (loginProfileEmail) loginProfileEmail.textContent = "email@example.com";
     if (loginAvatarEmoji) loginAvatarEmoji.textContent = "👤";
 
@@ -4437,7 +4447,7 @@ function updateLoginMenuLabel(user) {
 
     // Bejelentkezve: mutassuk, hogy ez már profil
 
-    textSpan.textContent = "Profilom";
+    textSpan.textContent = t("menu.profile");
 
   } else {
 
