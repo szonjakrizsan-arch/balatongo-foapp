@@ -2248,7 +2248,7 @@ window.translations = {
 "login.settings.hint": "Az avatar csak a BalatonGo appban jelenik meg, és a böngésződben tároljuk.",
     "login.forgot": "Elfelejtetted a jelszavad?",
 "login.forgot.title": "Jelszó visszaállítása",
-"login.forgot.sub": "Add meg az e-mail címed, és küldünk egy jelszó-visszaállító linket.",
+    "login.forgot.sub": "Add meg az e-mail címed, és küldünk egy jelszó-visszaállító linket.",
 "login.forgot.send": "Küldés",
 "login.forgot.sending": "Küldés folyamatban…",
 "login.forgot.success": "Elküldtük a jelszó-visszaállító e-mailt. Nézd meg a bejövő levelek között (és a spam mappát is).",
@@ -2258,6 +2258,7 @@ window.translations = {
 "login.forgot.error.user_not_found": "Ehhez az e-mail címhez nem tartozik felhasználói fiók.",
 "login.forgot.error.too_many": "Túl sok próbálkozás. Kérlek várj egy kicsit, majd próbáld újra.",
 "login.forgot.error.generic": "Hiba történt a jelszó-visszaállítás során. Kérlek próbáld meg később.",
+    "login.working": "Dolgozom...",
     "btn.back": "Vissza",
 "settings.title": "Profil beállítások",
 "settings.choose_avatar": "Válassz avatart magadnak:",
@@ -2597,6 +2598,7 @@ window.translations = {
 "login.forgot.error.user_not_found": "No account is associated with this email address.",
 "login.forgot.error.too_many": "Too many attempts. Please wait a moment and try again.",
 "login.forgot.error.generic": "Something went wrong. Please try again later.",
+    "login.working": "Working...",
 "btn.back": "Back",
 
 "favorites.placeholder.add_by_star":
@@ -2945,6 +2947,7 @@ window.translations = {
 "login.forgot.error.user_not_found": "Zu dieser E-Mail-Adresse gibt es kein Benutzerkonto.",
 "login.forgot.error.too_many": "Zu viele Versuche. Bitte warte kurz und versuche es erneut.",
 "login.forgot.error.generic": "Etwas ist schiefgelaufen. Bitte versuche es später erneut.",
+    "login.working": "Ich arbeite...",
 "btn.back": "Zurück",
 
 "favorites.title": "Favoriten",
@@ -3759,7 +3762,7 @@ if (forgotPanel && loginFormSection && loginFormSection.contains(forgotPanel)) {
 
       loginBtn.disabled = true;
       loginBtn.classList.add("disabled");
-      loginBtn.textContent = "Dolgozom...";
+      loginBtn.textContent = t("login.working");
 
       try {
         let credential;
