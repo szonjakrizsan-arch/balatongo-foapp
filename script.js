@@ -1799,18 +1799,17 @@ const popupHtml = `
           lon: pos.coords.longitude,
         };
         localStorage.setItem("bg_last_pos", JSON.stringify(userPos));
-        if (stat) stat.textContent = "Pozíció frissítve.";
+        if (stat) stat.textContent = t("nearby.position_updated");
         renderNearby();
       };
 
       const onErr = (err) => {
         if (stat)
-          stat.textContent =
-            "Nem sikerült a helymeghatározás. (HTTPS vagy engedély szükséges)";
+          stat.textContent = t("nearby.position_error");
         console.error(err);
       };
 
-      if (stat) stat.textContent = "Pozíció lekérése…";
+    if (stat) stat.textContent = t("nearby.position_loading");
 
       if (oneShot) {
         navigator.geolocation.getCurrentPosition(onOk, onErr, {
@@ -2487,6 +2486,7 @@ window.translations = {
     "tours.search.hint": "Tipp: „Zamárdi”, „Szent György-hegy” – azonnal szűr 🤸‍♀️",
     "tours.search.aria": "Keresés",
     "tours.search.title": "Keresés",
+    "tours.map.no_points": "Nincs megjeleníthető pont.",
     "tours.list.details": "Részletek",
 "tours.detail.intro": "Leírás",
 "tours.home.srtitle": "Kezdőlap",
@@ -2525,7 +2525,9 @@ window.translations = {
 "tours.nearby.ask": "Engedélyezem a helyzetmeghatározást",
 "tours.nearby.refresh": "Újbóli helymeghatározás",
 "tours.nearby.live": "Élő követés",
-
+    "nearby.position_loading": "Pozíció lekérése…",
+"nearby.position_updated": "Pozíció frissítve.",
+    "nearby.position_error": "Nem sikerült a helymeghatározás. (HTTPS vagy engedély szükséges)",
     "sub_home": "",
     "title_search": "Keresés",
     "sub_search": "",
@@ -2834,6 +2836,7 @@ window.translations = {
 "tours.detail.intro": "Description",
     "tours.search.aria": "Search",
     "tours.search.title": "Search",
+    "tours.map.no_points": "No points to display.",
 "tours.home.srtitle": "Home",
 "tours.home.lead": "Choose how you’d like to start:",
 "tours.unknown_place": "Unknown place",
@@ -2872,7 +2875,9 @@ window.translations = {
 "tours.nearby.ask": "Enable location access",
 "tours.nearby.refresh": "Refresh location",
 "tours.nearby.live": "Live tracking",
-
+    "nearby.position_loading": "Getting location...",
+"nearby.position_updated": "Location updated.",
+    "nearby.position_error": "Failed to get location. (HTTPS or permission required)",
     "sub_home": "",
     "title_search": "Search",
     "sub_search": "",
@@ -3181,6 +3186,7 @@ window.translations = {
 
     "tours.search.aria": "Suche",
     "tours.search.title": "Suche",
+    "tours.map.no_points": "Keine Punkte zum Anzeigen.",
 "tours.home.srtitle": "Startseite",
 "tours.home.lead": "Wähle, wie du starten möchtest:",
 "tours.detail.intro": "Beschreibung",
@@ -3215,10 +3221,11 @@ window.translations = {
 "tours.nearby.ask": "Standortzugriff erlauben",
 "tours.nearby.refresh": "Standort aktualisieren",
 "tours.nearby.live": "Live-Tracking",
+    "nearby.position_loading": "Standort wird ermittelt...",
 "chip.belepos": "Eintritt",
 "chip.poi": "POI",
 "chip.tura": "Tour",
-
+"nearby.position_error": "Standort konnte nicht ermittelt werden. (HTTPS oder Berechtigung erforderlich)",
     "sub_home": "",
     "title_search": "Suche",
     "sub_search": "",
@@ -3227,6 +3234,7 @@ window.translations = {
     "title_map": "Auf der Karte",
     "tours.map.srtitle": "Kartenansicht",
     "title_nearby": "In der Nähe",
+    "nearby.position_updated": "Position aktualisiert.",
     "tours.nearby.radius": "Radius:",
     "nearby.hint": "ℹ️ Die Entfernung wird in Luftlinie berechnet, nicht nach Route, aufgrund kartografischer Gegebenheiten.",
 "units.km": "km",
