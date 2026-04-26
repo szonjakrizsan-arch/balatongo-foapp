@@ -1936,15 +1936,15 @@ const where = locTxt
         const left = document.createElement("div");
         left.className = "left";
 
-        const t = document.createElement("div");
-        t.className = "title";
-        t.textContent = name;
+        const titleEl = document.createElement("div");
+titleEl.className = "title";
+titleEl.textContent = name;
 
         const m = document.createElement("div");
         m.className = "meta";
         m.textContent = `${where} • ${fmtKm(d)}`;
 
-        left.append(t, m);
+        left.append(titleEl, m);
         li.appendChild(left);
 
         const right = document.createElement("div");
