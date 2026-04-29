@@ -1990,14 +1990,7 @@ button.fav-toggle.is-fav,
 
   display: block;
 }
-/* ===== VIEW ALAP – csak az .active látszik ===== */
-.view {
-  display: none;
-}
 
-.view.active {
-  display: block;
-}
 /* =========================
    CSV INTRO KÁRTYA SZÉPÍTÉS
    Csak a detail oldalon
