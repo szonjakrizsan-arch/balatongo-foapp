@@ -738,7 +738,7 @@ metaPart.innerHTML = `
 
   window.addEventListener("routechange", (e) => {
     if (e.detail.route === "schedule") {
-      // initSchedule(true);
+      initSchedule(true);
     }
   });
 
