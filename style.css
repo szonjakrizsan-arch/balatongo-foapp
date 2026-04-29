@@ -166,6 +166,7 @@ body {
 }
 
 .view[data-route="home"] .bg-photo {
+  display: none;
   position: absolute;
   inset: 0;
   z-index: 0;
