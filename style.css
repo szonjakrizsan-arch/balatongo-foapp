@@ -161,7 +161,7 @@ body {
 
 .view[data-route="home"] .home-wrap {
   position: relative;
-  height: 100dvh;
+  height: calc(100vh - 48px);
   overflow: hidden;
 }
 
@@ -243,8 +243,16 @@ body {
     transform: translateX(2200px);
   }
 }
-
 .view[data-route="home"] .ui {
+  position: relative;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  padding: 20px 16px;
+  background: rgba(0,0,0,0.3);
+}
   position: relative;
   z-index: 3;
   display: flex;
