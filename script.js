@@ -29,11 +29,8 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // futtatjuk azonnal + amikor a DOM kész
-  // move();
-  if (document.readyState === "loading") {
-    // document.addEventListener("DOMContentLoaded", move, { once: true });
-  }
+    // futtatjuk azonnal
+  move();
 })();
    let currentLang = localStorage.getItem("balatongo_lang") || "hu";
   
