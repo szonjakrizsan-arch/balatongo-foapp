@@ -8,6 +8,7 @@
 document.addEventListener("DOMContentLoaded", () => {
   // ✅ MODÁLOK BIZTONSÁGOS HELYRE MOZGATÁSA (body alá)
 // azért kell, mert ha a modál az aside#sideMenu alatt van, a menü becsukásakor eltűnik (aria-hidden/transform).
+  // (function ensureModalsOutsideSideMenu() {
 (function ensureModalsOutsideSideMenu() {
   const MODAL_IDS = [
     "loginModal",
