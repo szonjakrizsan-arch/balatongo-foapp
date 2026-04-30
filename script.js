@@ -8,7 +8,6 @@
 document.addEventListener("DOMContentLoaded", () => {
   // ✅ MODÁLOK BIZTONSÁGOS HELYRE MOZGATÁSA (body alá)
 // azért kell, mert ha a modál az aside#sideMenu alatt van, a menü becsukásakor eltűnik (aria-hidden/transform).
-  // (function ensureModalsOutsideSideMenu() {
 (function ensureModalsOutsideSideMenu() {
   const MODAL_IDS = [
     "loginModal",
@@ -29,8 +28,11 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-    // futtatjuk azonnal
+  // futtatjuk azonnal + amikor a DOM kész
   move();
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", move, { once: true });
+  }
 })();
    let currentLang = localStorage.getItem("balatongo_lang") || "hu";
   
@@ -736,7 +738,7 @@ metaPart.innerHTML = `
 
   window.addEventListener("routechange", (e) => {
     if (e.detail.route === "schedule") {
-      initSchedule(true);
+      // initSchedule(true);
     }
   });
 
@@ -4540,4 +4542,3 @@ if (typeof applyTranslationsToDom === "function") {
 });
 
 })();
-
