@@ -24,12 +24,12 @@
 
   <div id="app">
     <!-- FELSŐ SÁV -->
-<header class="topbar">
-  <div class="logo" data-i18n="app.logo">BalatonGo</div>
-  <button class="menu-toggle" id="openMenuBtn" aria-label="Menü megnyitása">☰</button>
-</header>
+    <header class="topbar">
+      <div class="logo" data-i18n="app.logo">BalatonGo</div>
+   <button class="menu-toggle" id="openMenuBtn" aria-label="Menü megnyitása">☰</button>
+    </header>
 
-<main>
+    <main>
 
 <section class="view active" data-route="home" id="homeView">
   <div class="home-wrap">
@@ -44,26 +44,33 @@
     <div class="ui">
       <div class="card" role="main" aria-label="BalatonGo kezdőképernyő">
         <h2 class="home-title">BalatonGo</h2>
-        
-<div class="tagline">EZ A TAGLINE</div>
+
+        <!-- ✨ Többnyelvű tagline -->
+        <div class="tagline" data-i18n="home.subtitle"></div>
 
         <div class="btn-column">
+          <!-- ✨ Többnyelvű Időjárás gomb -->
           <button
-  class="action-button act-weather"
-  onclick="router.navigate('weather')">
-  IDŐJÁRÁS
-</button>
+            class="action-button act-weather"
+            onclick="router.navigate('weather')"
+            data-i18n="home.card.weather"
+          >
+          </button>
 
+          <!-- ✨ Többnyelvű Hajómenetrend -->
           <button
             class="action-button act-ferry"
             onclick="router.navigate('schedule')"
-            data-i18n="home.card.schedule">
+            data-i18n="home.card.schedule"
+          >
           </button>
 
+          <!-- ✨ Többnyelvű Túraútvonalak -->
           <button
             class="action-button act-hike"
             onclick="router.navigate('tours')"
-            data-i18n="home.card.tours">
+            data-i18n="home.card.tours"
+          >
           </button>
         </div>
       </div>
