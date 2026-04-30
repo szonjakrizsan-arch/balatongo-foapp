@@ -738,7 +738,7 @@ metaPart.innerHTML = `
 
   window.addEventListener("routechange", (e) => {
     if (e.detail.route === "schedule") {
-      // initSchedule(true);
+      initSchedule(true);
     }
   });
 
@@ -1936,15 +1936,15 @@ const where = locTxt
         const left = document.createElement("div");
         left.className = "left";
 
-        const titleEl = document.createElement("div");
-titleEl.className = "title";
-titleEl.textContent = name;
+        const t = document.createElement("div");
+        t.className = "title";
+        t.textContent = name;
 
         const m = document.createElement("div");
         m.className = "meta";
         m.textContent = `${where} • ${fmtKm(d)}`;
 
-        left.append(titleEl, m);
+        left.append(t, m);
         li.appendChild(left);
 
         const right = document.createElement("div");
