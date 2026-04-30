@@ -8,6 +8,7 @@
 document.addEventListener("DOMContentLoaded", () => {
   // ✅ MODÁLOK BIZTONSÁGOS HELYRE MOZGATÁSA (body alá)
 // azért kell, mert ha a modál az aside#sideMenu alatt van, a menü becsukásakor eltűnik (aria-hidden/transform).
+  // (function ensureModalsOutsideSideMenu() {
 (function ensureModalsOutsideSideMenu() {
   const MODAL_IDS = [
     "loginModal",
@@ -29,9 +30,9 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // futtatjuk azonnal + amikor a DOM kész
-  move();
+  // move();
   if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", move, { once: true });
+    // document.addEventListener("DOMContentLoaded", move, { once: true });
   }
 })();
    let currentLang = localStorage.getItem("balatongo_lang") || "hu";
@@ -1936,15 +1937,15 @@ const where = locTxt
         const left = document.createElement("div");
         left.className = "left";
 
-        const t = document.createElement("div");
-        t.className = "title";
-        t.textContent = name;
+        const titleEl = document.createElement("div");
+titleEl.className = "title";
+titleEl.textContent = name;
 
         const m = document.createElement("div");
         m.className = "meta";
         m.textContent = `${where} • ${fmtKm(d)}`;
 
-        left.append(t, m);
+        left.append(titleEl, m);
         li.appendChild(left);
 
         const right = document.createElement("div");
