@@ -192,7 +192,7 @@ body {
 
 .view[data-route="home"] .cloud {
   position: absolute;
-  background: url('https://png.pngtree.com/png-vector/20220527/ourlarge/pngtree-white-clouds-png-image_4718242.png')
+  background: none;
     no-repeat center;
   background-size: cover;
   opacity: 0.92;
