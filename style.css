@@ -176,7 +176,7 @@ body {
   position: absolute;
   inset: 0;
   z-index: 0;
-  background: url('https://i.imgur.com/yXy6uJ7_d.jpeg?maxwidth=520&shape=thumb&fidelity=high')
+  background: #1a3a5c url('https://i.imgur.com/yXy6uJ7_d.jpeg?maxwidth=520&shape=thumb&fidelity=high')
     no-repeat center center / cover;
 }
 
