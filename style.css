@@ -76,12 +76,6 @@ body {
   display: block;
 }
 
-/* WebView fix */
-@media all {
-  #homeView {
-    display: block !important;
-  }
-}
 
 /* ===== Kártya (globális) ===== */
 .card {
