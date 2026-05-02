@@ -76,6 +76,13 @@ body {
   display: block;
 }
 
+/* WebView fix */
+@media all {
+  #homeView {
+    display: block !important;
+  }
+}
+
 /* ===== Kártya (globális) ===== */
 .card {
   background: rgba(0, 0, 0, 0.45);
