@@ -3,6 +3,10 @@ html, body {
   width: 100%;
   overflow-x: hidden;
 }
+html, body, #app {
+  height: 100% !important;
+  min-height: 100vh !important;
+}
 /* ===== Globál + változók ===== */
 :root {
   /* Menü / UI színek */
