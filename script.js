@@ -4,7 +4,16 @@
 // - Időjárás
 // - Túrák + Közeli helyek
 // - Menü + modálok + többnyelvűség + Firebase Auth + kedvencek + Kapcsolat + EmailJS
-
+document.addEventListener('DOMContentLoaded', function() {
+  document.body.style.minHeight = '100vh';
+  document.getElementById('app').style.minHeight = '100vh';
+  var homeView = document.getElementById('homeView');
+  if (homeView) {
+    homeView.style.minHeight = '100vh';
+    var homeWrap = homeView.querySelector('.home-wrap');
+    if (homeWrap) homeWrap.style.minHeight = '100vh';
+  }
+});
 document.addEventListener("DOMContentLoaded", () => {
   // ✅ MODÁLOK BIZTONSÁGOS HELYRE MOZGATÁSA (body alá)
 // azért kell, mert ha a modál az aside#sideMenu alatt van, a menü becsukásakor eltűnik (aria-hidden/transform).
