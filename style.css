@@ -1089,7 +1089,11 @@ body {
   z-index: 9999;
   padding: 16px;
 }
-
+.modal.active {
+  display: flex !important;
+  width: 100% !important;
+  height: 100% !important;
+}
 /* JS teszi aktívvá */
 .modal.active,
 .modal[aria-hidden="false"] {
