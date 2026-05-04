@@ -39,7 +39,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // futtatjuk azonnal + amikor a DOM kész
-  // move();
+  move();
   if (document.readyState === "loading") {
     // document.addEventListener("DOMContentLoaded", move, { once: true });
   }
