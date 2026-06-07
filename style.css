@@ -375,7 +375,44 @@ body {
   justify-content: center;
   flex-wrap: wrap;
 }
+.view[data-route="schedule"] .quick-dates button {
+  background: #dc8460;
+  border: 1px solid rgba(255,255,255,0.85);
+  color: #ffffff;
 
+  border-radius: 999px;
+  padding: 0.55rem 1.2rem;
+
+  font-weight: 700;
+
+  box-shadow:
+    0 4px 12px rgba(0,0,0,0.18),
+    0 2px 8px rgba(220,132,96,0.35);
+
+  transition: all 0.2s ease;
+}
+
+.view[data-route="schedule"] .quick-dates button:hover {
+  background: #e28f6e;
+  transform: translateY(-1px);
+}
+.view[data-route="schedule"] .search-btn,
+.view[data-route="schedule"] button.search-btn,
+.view[data-route="schedule"] #searchBtn {
+  background: #b85e3d;
+  border: 1px solid rgba(255,255,255,0.9);
+  color: #ffffff;
+
+  box-shadow:
+    0 4px 14px rgba(0,0,0,0.22),
+    0 4px 12px rgba(201,111,77,0.35);
+}
+
+.view[data-route="schedule"] .search-btn:hover,
+.view[data-route="schedule"] button.search-btn:hover,
+.view[data-route="schedule"] #searchBtn:hover {
+  background: #d97d59;
+}
 .view[data-route="schedule"] .tag {
   background: rgba(255, 255, 255, 0.1);
   color: #fff;
@@ -517,7 +554,7 @@ body {
 .view[data-route="tours"][data-view="view-search"] .app-shell::before {
   background:
     linear-gradient(to bottom, rgba(3, 7, 12, 0.55), rgba(3, 7, 12, 0.3)),
-    url("https://i.imgur.com/eadPZ11.jpeg") center/cover no-repeat !important;
+    url("https://i.imgur.com/LEtN2fr.jpeg") center/cover no-repeat !important;
 }
 
 .view[data-route="tours"][data-view="view-detail"] .app-shell::before {
@@ -636,7 +673,58 @@ body {
   font-size: 16px;
   box-shadow: 0 6px 18px rgba(0, 0, 0, 0.1);
 }
+.search-nav-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  align-items: center;
+  margin: 22px 0 26px;
+}
 
+.nav-switch-btn {
+  width: 100%;
+  max-width: 420px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+
+  padding: 18px 22px;
+
+  border: 1px solid rgba(255,255,255,0.18);
+  border-radius: 24px;
+
+  background:
+    linear-gradient(
+      180deg,
+      rgba(20,70,110,0.92),
+      rgba(10,35,60,0.96)
+    );
+
+  color: #fff;
+  font-size: 1.15rem;
+  font-weight: 700;
+
+  box-shadow:
+    0 10px 28px rgba(0,0,0,0.35),
+    inset 0 1px 0 rgba(255,255,255,0.12);
+
+  backdrop-filter: blur(8px);
+
+  cursor: pointer;
+  transition: transform .18s ease, box-shadow .18s ease;
+}
+
+.nav-switch-btn:active {
+  transform: scale(0.98);
+}
+
+.nav-switch-btn:hover {
+  box-shadow:
+    0 14px 34px rgba(0,0,0,0.42),
+    inset 0 1px 0 rgba(255,255,255,0.18);
+}
 /* ====== TÚRA / KÖZELBEN LISTA + GOMBOK ====== */
 
 .view[data-route="tours"] .tura-list {
@@ -2054,7 +2142,13 @@ button.fav-toggle.is-fav,
   border: 1px solid rgba(0,0,0,0.08);
   box-shadow: 0 16px 40px rgba(0,0,0,0.28);
 }
-
+.detail-photo{
+    width: 100%;
+    height: auto;
+    display: block;
+    border-radius: 16px;
+    margin: 16px 0;
+}
 /* 2) A belső blokkok ne külön "dobozok" legyenek */
 #view-detail #detail-card .detail-head,
 #view-detail #detail-card .detail-chips,
@@ -2819,4 +2913,45 @@ button.fav-toggle.is-fav,
 }
 #loginModal .hidden {
   display: none !important;
+}
+#scheduleMap {
+  width: 100%;
+  height: 320px;
+  border-radius: 22px;
+  overflow: hidden;
+  margin-bottom: 18px;
+  box-shadow: 0 8px 30px rgba(0,0,0,0.25);
+}
+.detail-nav-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+
+  margin-top: 14px;
+  padding: 12px 22px;
+
+  border-radius: 999px;
+
+  background: #aee7ff;
+  color: #111;
+
+  text-decoration: none;
+  font-weight: 700;
+  font-size: 15px;
+  font-family: inherit;
+
+  box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+
+  transition: transform 0.15s ease,
+              background 0.15s ease;
+}
+
+.detail-nav-btn:hover {
+  background: #97dcfb;
+  transform: translateY(-1px);
+}
+
+.detail-nav-btn span {
+  position: relative;
+  top: 1px;
 }
