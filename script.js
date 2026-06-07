@@ -162,30 +162,41 @@ if (route === "weather" && window.__weatherBgUrl) {
     return top || defaultRoute;
   }
 
-  // Navigálás egy route-ra
+  // Előző útvonal tárolása
+let _previousRoute = null;
+
+// Navigálás egy route-ra
   function navigate(route, subpath = "") {
     const target = subpath
       ? `#/${route}/${subpath.replace(/^\/+/, "")}`
       : `#/${route}`;
-
     // Ha már ezen az útvonalon vagyunk, csak frissítsük a nézetet
     if ((location.hash || "") === target) {
       show(route);
       return;
     }
-
+    // Mentsük el az aktuális helyet, mielőtt navigálunk
+    _previousRoute = location.hash || "";
     // Különben hash-csere → hashchange esemény is lefut
     location.hash = target;
   }
-
   // Vissza gomb logika
   function back() {
-    if (history.length > 1) {
-      history.back();
-    } else {
-      navigate(defaultRoute);
-    }
+  const hash = location.hash || "";
+  // Ha van eltárolt előző útvonal, oda menjünk vissza
+  if (_previousRoute) {
+    const prev = _previousRoute;
+    _previousRoute = null;
+    location.hash = prev;
+    return;
   }
+  // Közelben aloldalról mindig a keresésre menjen vissza
+  if (hash.includes("/nearby/")) {
+    navigate("/tours/search");
+    return;
+  }
+  navigate(defaultRoute);
+}
 
   // Hash változás figyelése
   window.addEventListener("hashchange", () => {
@@ -322,26 +333,29 @@ const cleanStopName = (s) => {
 function fillStopSelects() {
   const from = document.getElementById("fromPort");
   const to = document.getElementById("toPort");
+
   if (!from || !to) return;
 
   // Település-szintű nevek (duplikátumok nélkül)
   const namesSet = new Set();
+
   GTFS.stops.forEach((s) => {
-  const raw = (s.stop_name || "").toLowerCase();
-  const name = cleanStopName(s.stop_name);
+    const name = cleanStopName(s.stop_name);
 
-  if (name === "Balatonmária") return;
-  if (name) namesSet.add(name);
-});
+    if (name === "Balatonmária") return;
+    if (name) namesSet.add(name);
+  });
 
-  const names = [...namesSet].sort((a, b) => a.localeCompare(b, "hu"));
+  const names = [...namesSet].sort((a, b) =>
+    a.localeCompare(b, "hu")
+  );
 
   from.innerHTML = `<option value="">${t("schedule.selectFrom")}</option>`;
   to.innerHTML = `<option value="">${t("schedule.selectTo")}</option>`;
 
   names.forEach((name) => {
     const opt1 = document.createElement("option");
-    opt1.value = name;          // ← MOST A NÉV A VALUE
+    opt1.value = name;
     opt1.textContent = name;
 
     const opt2 = opt1.cloneNode(true);
@@ -349,8 +363,91 @@ function fillStopSelects() {
     from.appendChild(opt1);
     to.appendChild(opt2);
   });
+
+  from.addEventListener("change", () => {
+
+  const mapEl = document.getElementById("scheduleMap");
+
+  if (mapEl) {
+    mapEl.style.display = "block";
+  }
+
+  updateToPorts();
+
+});
 }
 
+function updateToPorts() {
+  const from = document.getElementById("fromPort");
+  const to = document.getElementById("toPort");
+
+  if (!from || !to) return;
+
+  const selectedFrom = from.value;
+  console.log("SELECTED FROM:", selectedFrom);
+console.log("STOP TIMES:", GTFS.stopTimes?.length);
+console.log("STOPS:", GTFS.stops?.length);
+
+  to.innerHTML = `<option value="">${t("schedule.selectTo")}</option>`;
+  const reachable = new Set();
+const manualConnections = {
+  "Szántódrév": ["Tihanyrév"],
+  "Tihanyrév": ["Szántódrév"]
+};
+
+if (manualConnections[selectedFrom]) {
+  manualConnections[selectedFrom].forEach((target) => {
+    reachable.add(target);
+  });
+}
+GTFS.stopTimes.forEach((st, index) => {
+  const stop = GTFS.stops.find(
+    (s) => cleanStopName(s.stop_name) === selectedFrom
+  );
+
+  if (!stop) return;
+
+  const currentStop = GTFS.stops.find(
+  (s) => s.stop_id === st.stop_id
+);
+
+if (!currentStop) return;
+
+const currentName = cleanStopName(currentStop.stop_name);
+
+if (currentName !== selectedFrom) return;
+
+  const tripStops = GTFS.stopTimes.filter(
+    (x) => x.trip_id === st.trip_id
+  );
+
+  tripStops.forEach((ts) => {
+    if (Number(ts.stop_sequence) > Number(st.stop_sequence)) {
+      const targetStop = GTFS.stops.find(
+        (s) => s.stop_id === ts.stop_id
+      );
+
+      if (!targetStop) return;
+
+      const targetName = cleanStopName(targetStop.stop_name);
+
+      if (targetName && targetName !== selectedFrom) {
+        reachable.add(targetName);
+      }
+    }
+  });
+});
+
+[...reachable]
+  .sort((a, b) => a.localeCompare(b, "hu"))
+  .forEach((name) => {
+    const opt = document.createElement("option");
+    opt.value = name;
+    opt.textContent = name;
+
+    to.appendChild(opt);
+  });
+}
 
   function setDateQuick(kind) {
     const inp = document.getElementById("datePick");
@@ -607,7 +704,13 @@ function safeSearch() {
     if (!box) return;
 
     box.innerHTML = "";
+box.innerHTML = "";
 
+const mapEl = document.getElementById("scheduleMap");
+
+if (mapEl) {
+  mapEl.style.display = "none";
+}
     const fromStop = byStopId.get(fromStopId);
     const toStop = byStopId.get(toStopId);
 
@@ -1005,7 +1108,7 @@ router.setBg(defaultBackground);
       );
 
    let lastView = "view-home";
-
+let savedPrev = null;
 const VIEW_TITLE_KEY = {
   "view-home": "title_home",
   "view-search": "title_search",
@@ -1530,7 +1633,15 @@ const trChip = (raw) => {
   if ((r.distance_km || "").toString().trim()) addChip(`${String(r.distance_km).trim()} km`);
 
   if (chips.childElementCount) host.appendChild(chips);
+const photo = (r.photo || "").trim();
 
+if (photo) {
+  const img = document.createElement("img");
+  img.src = photo;
+  img.alt = title;
+  img.className = "detail-photo";
+  host.appendChild(img);
+}
 
   // ---- SZEKCIÓ segéd
   const addSection = (titleKey, titleFallback, bodyText) => {
@@ -1561,44 +1672,65 @@ p.textContent = text.replace(/^"+|"+$/g, "");
   addSection("tours.detail.ticket", "Jegyinformáció", csvText(r, "ticket_info"));
 
   // ---- LINK / TEL (ha van)
-  const website = (r.website || "").trim();
-  const phone = (r.phone || "").trim();
+const website = (r.website || "").trim();
+const phone = (r.phone || "").trim();
 
-  if (website || phone) {
-    const wrap = document.createElement("div");
-    wrap.className = "detail-section";
+if (website || phone) {
+  const wrap = document.createElement("div");
+  wrap.className = "detail-section";
 
-    const lab = document.createElement("div");
-    lab.className = "detail-label";
-    lab.textContent = tr("tours.detail.contact", "Kapcsolat");
+  const lab = document.createElement("div");
+  lab.className = "detail-label";
+  lab.textContent = tr("tours.detail.contact", "Kapcsolat");
 
-    const box = document.createElement("div");
-    box.className = "detail-text";
+  const box = document.createElement("div");
+  box.className = "detail-text";
 
-    if (website) {
-      const a = document.createElement("a");
-      a.href = website;
-      a.target = "_blank";
-      a.rel = "noopener";
-      a.textContent = website;
-      box.appendChild(a);
-    }
-
-    if (phone) {
-      if (website) box.appendChild(document.createElement("br"));
-      const a2 = document.createElement("a");
-      a2.href = `tel:${phone}`;
-      a2.textContent = phone;
-      box.appendChild(a2);
-    }
-
-    wrap.append(lab, box);
-    host.appendChild(wrap);
+  if (website) {
+    const a = document.createElement("a");
+    a.href = website;
+    a.target = "_blank";
+    a.rel = "noopener";
+    a.textContent = website;
+    box.appendChild(a);
   }
 
-  if (typeof window.updateFavoriteStars === "function") {
-    window.updateFavoriteStars();
+  if (phone) {
+    if (website) box.appendChild(document.createElement("br"));
+
+    const a2 = document.createElement("a");
+    a2.href = `tel:${phone}`;
+    a2.textContent = phone;
+    box.appendChild(a2);
   }
+
+  wrap.append(lab, box);
+  host.appendChild(wrap);
+}
+
+// ---- NAVIGÁCIÓ
+const lat = parseFloat(r[latKey]);
+const lon = parseFloat(r[lonKey]);
+
+if (!isNaN(lat) && !isNaN(lon)) {
+  const wrap = document.createElement("div");
+  wrap.className = "detail-section";
+
+  const btn = document.createElement("a");
+  btn.className = "detail-nav-btn";
+  btn.href = `https://www.google.com/maps/dir/?api=1&destination=${lat},${lon}`;
+  btn.target = "_blank";
+  btn.rel = "noopener";
+
+  btn.innerHTML = `🗺️ <span>${tr("tours.detail.navigate", "Induljunk ide")}</span>`;
+
+  wrap.appendChild(btn);
+  host.appendChild(wrap);
+}
+
+if (typeof window.updateFavoriteStars === "function") {
+  window.updateFavoriteStars();
+}
 }
 
     /* ===== Térkép ===== */
@@ -1700,7 +1832,11 @@ const popupHtml = `
               );
             if (btnDetail) {
               btnDetail.addEventListener("click", () => {
-                lastView = "view-map";
+                lastView = location.hash.includes("/nearby")
+  ? "view-nearby"
+  : location.hash.includes("/map")
+  ? "view-map"
+  : "view-search";
                 if (slug) setSub(`detail/${slug}`);
               });
             }
@@ -1719,6 +1855,7 @@ const popupHtml = `
                 }
               });
             }
+            
             if (typeof window.updateFavoriteStars === "function") {
               window.updateFavoriteStars();
             }
@@ -1848,7 +1985,13 @@ const popupHtml = `
       } catch {}
       return null;
     }
+const nearbyRadius = toursRoot.querySelector("#nearby-radius");
 
+if (nearbyRadius) {
+  nearbyRadius.addEventListener("input", () => {
+    renderNearby();
+  });
+}
     function renderNearby() {
       const list = toursRoot.querySelector("#nearby-list");
       const stat = toursRoot.querySelector("#nearby-status");
@@ -2072,30 +2215,48 @@ right.appendChild(navWrap);
       if (to) {
         const id = to.getAttribute("data-nav-to");
         if (id === "view-search") {
-          lastView = "view-home";
-          setSub("search");
-        } else if (id === "view-map") {
-          lastView = "view-home";
-          setSub("map");
-        } else if (id === "view-nearby") {
-          lastView = "view-home";
-          setSub("nearby");
-        }
+  savedPrev = parseSubHash().view;
+  setSub("search");
+       } else if (id === "view-map") {
+  savedPrev = parseSubHash().view;
+  lastView = parseSubHash().view;
+  setSub("map");
+} else if (id === "view-nearby") {
+  savedPrev = parseSubHash().view;
+  lastView = parseSubHash().view;
+  setSub("nearby");
+}
         return;
       }
       const back = e.target.closest("[data-nav-back]");
       if (back) {
         const r = parseSubHash();
         if (r.view === "view-detail") {
-          if (lastView === "view-map") setSub("map");
-          else if (lastView === "view-search") setSub("search");
-          else if (lastView === "view-nearby") setSub("nearby");
-          else setSub("");
-        } else if (r.view === "view-home") {
-          router.navigate("home");
-        } else {
-          setSub("");
+          if (lastView === "view-nearby") {
+            setSub("nearby");
+          } else if (lastView === "view-map") {
+            setSub("map");
+          } else {
+            setSub("search");
+          }
+          return;
         }
+        if (r.view === "view-home") {
+          router.navigate("home");
+          return;
+        }
+        if (r.view === "view-search") {
+  setSub(savedPrev === "view-home" ? "" : (savedPrev || "").replace("view-", "") || "");
+  savedPrev = null;
+  return;
+}
+if (r.view === "view-map" || r.view === "view-nearby") {
+  console.log("vissza, prev:", savedPrev, "lastView:", lastView);
+  setSub(savedPrev === "view-home" ? "" : (savedPrev || "").replace("view-", "") || "");
+  savedPrev = null;
+  return;
+}
+        setSub("");
       }
     });
 
@@ -2529,8 +2690,11 @@ window.translations = {
 "tours.detail.ticket": "Jegyinformáció",
 "chip.belepos": "Belépős",
 "chip.poi": "POI",
+    "tours.nav.map": "Barangolj a Térképen",
+"tours.nav.nearby": "Érdekességek a Közelben",
+"tours.nav.search": "Vissza a Kereséshez",
 "chip.tura": "Túra",
-
+"tours.detail.navigate": "Induljunk ide",
 "tours.home.card.nearby.title": "A közelben",
 "tours.home.card.nearby.desc": "Mutasd a közeli helyeket",
 "tours.map.counter": "{n} pont",
@@ -2879,8 +3043,11 @@ window.translations = {
 "tours.detail.ticket": "Ticket info",
 "chip.belepos": "Ticketed",
 "chip.poi": "POI",
+    "tours.nav.map": "Explore the Map",
+"tours.nav.nearby": "Nearby Attractions",
+"tours.nav.search": "Back to Search",
 "chip.tura": "Tour",
-
+"tours.detail.navigate": "Navigate here",
 "tours.home.card.map.title": "On map",
     "tours.map.srtitle": "Map view",
 "tours.home.card.map.desc": "View points on the map",
@@ -3243,7 +3410,11 @@ window.translations = {
     "nearby.position_loading": "Standort wird ermittelt...",
 "chip.belepos": "Eintritt",
 "chip.poi": "POI",
+    "tours.nav.map": "Karte entdecken",
+"tours.nav.nearby": "Sehenswürdigkeiten in der Nähe",
+"tours.nav.search": "Zurück zur Suche",
 "chip.tura": "Tour",
+    "tours.detail.navigate": "Route starten",
 "nearby.position_error": "Standort konnte nicht ermittelt werden. (HTTPS oder Berechtigung erforderlich)",
     "sub_home": "",
     "title_search": "Suche",
@@ -3357,7 +3528,62 @@ function setActiveLang(lang) {
     }
   } catch (e) {}
 }
+// ===== TÉRKÉP =====
+const map = L.map("scheduleMap").setView([46.8, 17.7], 9);
 
+L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+  attribution: "&copy; OpenStreetMap contributors",
+}).addTo(map);
+
+// ===== KIKÖTŐK KIRAJZOLÁSA =====
+setTimeout(() => {
+
+  if (
+    typeof GTFS !== "undefined" &&
+    Array.isArray(GTFS.stops) &&
+    GTFS.stops.length > 0
+  ) {
+
+    const uniqueStops = new Map();
+
+    GTFS.stops.forEach((stop) => {
+
+      if (
+        stop.stop_name &&
+        stop.stop_lat &&
+        stop.stop_lon &&
+        !uniqueStops.has(stop.stop_name)
+      ) {
+        uniqueStops.set(stop.stop_name, stop);
+      }
+
+    });
+
+    uniqueStops.forEach((stop) => {
+
+      L.circleMarker(
+        [Number(stop.stop_lat), Number(stop.stop_lon)],
+        {
+          radius: 6,
+          color: "#ffcc00",
+          fillColor: "#ff6600",
+          fillOpacity: 1,
+        }
+      )
+        .addTo(map)
+        .bindPopup(stop.stop_name);
+
+    });
+
+    console.log("Kikötők kirajzolva:", uniqueStops.size);
+
+  } else {
+
+    console.log("GTFS stops még nincs betöltve");
+
+  }
+
+}, 1500);
 // Gombokra kattintás
 langBtns.forEach((btn) => {
   btn.addEventListener("click", () => {
