@@ -80,10 +80,11 @@
 
       <!-- ================ MENETREND ================ -->
       <section class="view" data-route="schedule" id="scheduleView">
-        <div class="schedule-wrap">
-          <div class="app-bg" aria-hidden="true"></div>
+        <div class="schedule-wrap">          
+        <div class="app-bg" aria-hidden="true"></div>
 
           <div class="card">
+            <div id="scheduleMap"></div>
             <h1 data-i18n="schedule.title">Menetrend kereső</h1>
 
             <label for="fromPort">
@@ -253,29 +254,68 @@
 
 
             <!-- KERESÉS -->
-            <section
-              class="tview view"
-              id="view-search"
-              aria-labelledby="search-title"
-            >
-              <div class="view-inner">
-                <h2 id="search-title" class="sr-only" data-i18n="tours.search.title">Keresés</h2>
-               <input
-              id="search-input"
-              class="search-input"
-              placeholder="Írj be települést vagy útvonalnevet…"
-              data-i18n-placeholder="tours.search.placeholder"
-              autocomplete="off"
-              inputmode="search"
-              aria-label="Keresés" data-i18n-aria="tours.search.aria"
-              />
+<section
+  class="tview view"
+  id="view-search"
+  aria-labelledby="search-title"
+>
+  <div class="view-inner">
 
-                <p class="hint" data-i18n="tours.search.hint">
-  Tipp: „Zamárdi”, „Szent György-hegy” – azonnal szűr 🤸‍♀️
-</p>
-              </div>
-            </section>
+    <h2
+      id="search-title"
+      class="sr-only"
+      data-i18n="tours.search.title"
+    >
+      Keresés
+    </h2>
 
+    <div class="search-nav-buttons">
+
+      <button
+        class="nav-switch-btn"
+        data-nav-to="view-map"
+      >
+        <span class="nav-btn-icon">🗺️</span>
+
+        <span class="nav-btn-text" data-i18n="tours.nav.map">
+          Barangolj a Térképen
+        </span>
+      </button>
+
+      <button
+        class="nav-switch-btn"
+        data-nav-to="view-nearby"
+      >
+        <span class="nav-btn-icon">📍</span>
+
+        <span class="nav-btn-text" data-i18n="tours.nav.nearby">
+          Érdekességek a Közelben
+        </span>
+      </button>
+
+    </div>
+
+    <input
+      id="search-input"
+      class="search-input"
+      placeholder="Írj be települést vagy útvonalnevet…"
+      data-i18n-placeholder="tours.search.placeholder"
+      autocomplete="off"
+      inputmode="search"
+      aria-label="Keresés"
+      data-i18n-aria="tours.search.aria"
+    />
+
+    <p
+      class="hint"
+      data-i18n="tours.search.hint"
+    >
+      Tipp: „Zamárdi”, „Szent György-hegy” – azonnal szűr 🤸‍♀️
+    </p>
+
+  </div>
+</section>
+            
             <!-- RÉSZLET -->
             <section
               class="tview view"
@@ -292,112 +332,245 @@
             </section>
 
             <!-- TÉRKÉP -->
-            <section
-              class="tview view"
-              id="view-map"
-              aria-labelledby="map-title"
-            >
-              <div class="view-inner">
-                <h2 id="map-title" class="sr-only" data-i18n="tours.map.srtitle">Térképes nézet</h2>
-                <div class="map-panel">
-                  <div class="map-toolbar">
-                   <input
-  id="map-filter"
-  class="map-filter"
-  placeholder="Szűrés a térképen (pl. település, név)…"
-  data-i18n-placeholder="tours.map.filter.placeholder"
-  autocomplete="off"
-  inputmode="search"
-  aria-label="Térképes szűrés"
-/>
+<section
+  class="tview view"
+  id="view-map"
+  aria-labelledby="map-title"
+>
+  <div class="view-inner">
 
-                    <span id="map-counter" class="map-counter">—</span>
-                  </div>
-                  <div id="map" role="region" aria-label="Balaton térkép"></div>
-                  <div class="csv-status" id="map-status"></div>
-                </div>
-              </div>
-            </section>
+    <h2
+      id="map-title"
+      class="sr-only"
+      data-i18n="tours.map.srtitle"
+    >
+      Térképes nézet
+    </h2>
+
+    <div class="search-nav-buttons">
+
+      <button
+        class="nav-switch-btn"
+        data-nav-to="view-search"
+      >
+        <span class="nav-btn-icon">🔎</span>
+
+        <span
+          class="nav-btn-text"
+          data-i18n="tours.nav.search"
+        >
+          Vissza a Kereséshez
+        </span>
+      </button>
+
+      <button
+        class="nav-switch-btn"
+        data-nav-to="view-nearby"
+      >
+        <span class="nav-btn-icon">📍</span>
+
+        <span
+          class="nav-btn-text"
+          data-i18n="tours.nav.nearby"
+        >
+          Érdekességek a Közelben
+        </span>
+      </button>
+
+    </div>
+
+    <div class="map-panel">
+
+      <div class="map-toolbar">
+
+        <input
+          id="map-filter"
+          class="map-filter"
+          placeholder="Szűrés a térképen (pl. település, név)…"
+          data-i18n-placeholder="tours.map.filter.placeholder"
+          autocomplete="off"
+          inputmode="search"
+          aria-label="Térképes szűrés"
+        />
+
+        <span id="map-counter" class="map-counter">—</span>
+
+      </div>
+
+      <div
+        id="map"
+        role="region"
+        aria-label="Balaton térkép"
+      ></div>
+
+      <div class="csv-status" id="map-status"></div>
+
+    </div>
+
+  </div>
+</section>
+
+     
 
             <!-- KÖZELBEN -->
-            <section
-              class="tview view"
-              id="view-nearby"
-              aria-labelledby="nearby-title"
-            >
-              <div class="view-inner">
-                <h2 id="nearby-title" class="sr-only">A közelben</h2>
+<section
+  class="tview view"
+  id="view-nearby"
+  aria-labelledby="nearby-title"
+>
+  <div class="view-inner">
 
-                <div class="nearby-panel">
-<div class="nearby-row">
-  <button id="nearby-ask" class="primary-btn" data-i18n="tours.nearby.ask">
-    Engedélyezem a helyzetmeghatározást
-  </button>
+    <h2
+      id="nearby-title"
+      class="sr-only"
+      data-i18n="tours.nearby.title"
+    >
+      A közelben
+    </h2>
+
+    <div class="search-nav-buttons">
+
+      <button
+        class="nav-switch-btn"
+        data-nav-to="view-search"
+      >
+        <span class="nav-btn-icon">🔎</span>
+
+        <span
+          class="nav-btn-text"
+          data-i18n="tours.nav.search"
+        >
+          Vissza a Kereséshez
+        </span>
+      </button>
+
+      <button
+        class="nav-switch-btn"
+        data-nav-to="view-map"
+      >
+        <span class="nav-btn-icon">🗺️</span>
+
+        <span
+          class="nav-btn-text"
+          data-i18n="tours.nav.map"
+        >
+          Barangolj a Térképen
+        </span>
+      </button>
+
+    </div>
+
+    <div class="nearby-panel">
+
+      <div class="nearby-row">
+
+        <button
+          id="nearby-ask"
+          class="primary-btn"
+          data-i18n="tours.nearby.ask"
+        >
+          Engedélyezem a helyzetmeghatározást
+        </button>
+
+        <button
+          id="nearby-refresh"
+          class="ghost-btn"
+          title="Pozíció frissítése"
+          data-i18n="tours.nearby.refresh"
+        >
+          Újbóli helymeghatározás
+        </button>
+
+        <label class="switch">
+          <input type="checkbox" id="nearby-watch" />
+
+          <span data-i18n="tours.nearby.live">
+            Élő követés
+          </span>
+        </label>
+
+      </div>
+
+      <p
+        class="nearby-hint"
+        data-i18n="nearby.hint"
+      ></p>
+
+      <div class="nearby-row">
+
+        <label
+          for="nearby-radius"
+          class="nearby-label"
+        >
+          <span data-i18n="tours.nearby.radius">
+            Sugár:
+          </span>
+
+          <strong>
+            <span id="nearby-radius-val">15</span>
+
+            <span data-i18n="units.km">
+              km
+            </span>
+          </strong>
+        </label>
+
+        <input
+          id="nearby-radius"
+          type="range"
+          min="1"
+          max="250"
+          step="1"
+          value="15"
+        />
+
+        <span
+          id="nearby-counter"
+          class="map-counter"
+        >
+          —
+        </span>
+
+      </div>
+
+      <div
+        id="nearby-status"
+        class="csv-status"
+      ></div>
+
+    </div>
+
+    <ul
+      id="nearby-list"
+      class="tura-list"
+      aria-live="polite"
+    ></ul>
+
+  </div>
+</section>
+
+</main>
+
+<footer class="bottom-bar glass" role="contentinfo">
 
   <button
-    id="nearby-refresh"
-    class="ghost-btn"
-    title="Pozíció frissítése"
-    data-i18n="tours.nearby.refresh"
+    class="back-btn"
+    type="button"
+    data-nav-back
+    aria-label="Vissza"
   >
-  
-    Újbóli helymeghatározás
+    ←
+    <span data-i18n="generic.back">
+      Vissza
+    </span>
   </button>
 
-  <label class="switch">
-    <input type="checkbox" id="nearby-watch" />
-    <span data-i18n="tours.nearby.live">Élő követés</span>
-  </label>
+</footer>
+
 </div>
-
-<p class="nearby-hint" data-i18n="nearby.hint"></p>
-                  
-                  <div class="nearby-row">
-                  <label for="nearby-radius" class="nearby-label">
-  <span data-i18n="tours.nearby.radius">Sugár:</span>
-  <strong>
-    <span id="nearby-radius-val">15</span>
-    <span data-i18n="units.km">km</span>
-  </strong>
-</label>
-
-                    <input
-                      id="nearby-radius"
-                      type="range"
-                      min="1"
-                      max="250"
-                      step="1"
-                      value="15"
-                    />
-                    <span id="nearby-counter" class="map-counter">—</span>
-                  </div>
-
-                  <div id="nearby-status" class="csv-status"></div>
-                </div>
-
-                <ul
-                  id="nearby-list"
-                  class="tura-list"
-                  aria-live="polite"
-                ></ul>
-              </div>
-            </section>
-          </main>
-
-          <footer class="bottom-bar glass" role="contentinfo">
-            <button
-              class="back-btn"
-              type="button"
-              data-nav-back
-              aria-label="Vissza"
-            >
-              ← <span data-i18n="generic.back">Vissza</span>
-
-            </button>
-          </footer>
-        </div>
-      </section>
-    </main>
+</section>
+</main>
+               
 
     
 <!-- OLDALSÓ MENÜ (SLIDE-IN) -->
