@@ -857,6 +857,11 @@ metaPart.innerHTML = `
   window.addEventListener("routechange", (e) => {
     if (e.detail.route === "schedule") {
       initSchedule(true);
+      setTimeout(() => {
+        if (typeof map !== "undefined" && map) {
+          map.invalidateSize();
+        }
+      }, 300);
     }
   });
 
@@ -3535,6 +3540,10 @@ function setActiveLang(lang) {
 }
 // ===== TÉRKÉP =====
 const map = L.map("scheduleMap").setView([46.8, 17.7], 9);
+
+setTimeout(() => {
+  map.invalidateSize();
+}, 300);
 
 L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
   attribution: "&copy; OpenStreetMap contributors",
