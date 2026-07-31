@@ -262,6 +262,11 @@ const cleanStopName = (s) => {
   // (vessző, gondolatjel, zárójel)
   x = x.replace(/\s+\d+(?:\/[A-Z])?\.\s*hajóállás.*$/i, "");
 
+  // a Bahart 2026.09.26-i frissítése óta a fő kikötő-állomások neve
+  // "X Kikötő" formában van, ez duplikátumot okozott a hajóállásokból
+  // képzett "X" névvel szemben – vágjuk le a végéről
+  x = x.replace(/\s+kikötő\s*$/i, "");
+
   const cut = x.split(",")[0].split(" – ")[0].split("(")[0].trim();
 
   return cut;
