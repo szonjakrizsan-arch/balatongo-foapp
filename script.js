@@ -436,7 +436,7 @@ if (currentName !== selectedFrom) return;
 
       const targetName = cleanStopName(targetStop.stop_name);
 
-      if (targetName && targetName !== selectedFrom) {
+      if (targetName) {
         reachable.add(targetName);
       }
     }
