@@ -938,7 +938,10 @@ async function getWeather() {
   }
 
   const apiKey = "21e5384f9a11e585cdfdf510dd5a64f6";
-  const url = `https://api.openweathermap.org/data/2.5/forecast?q=${encodeURIComponent(
+  const forecastUrl = `https://api.openweathermap.org/data/2.5/forecast?q=${encodeURIComponent(
+    city
+  )}&appid=${apiKey}&units=metric&lang=${currentLang || "hu"}`;
+  const currentUrl = `https://api.openweathermap.org/data/2.5/weather?q=${encodeURIComponent(
     city
   )}&appid=${apiKey}&units=metric&lang=${currentLang || "hu"}`;
 
@@ -946,17 +949,24 @@ async function getWeather() {
   if (btn) btn.disabled = true;
 
   try {
-    const response = await fetch(url);
+    const [response, currentResponse] = await Promise.all([
+      fetch(forecastUrl),
+      fetch(currentUrl).catch(() => null),
+    ]);
     if (!response.ok) throw new Error("Hiba a lekérésnél");
     const data = await response.json();
+    const currentData =
+      currentResponse && currentResponse.ok
+        ? await currentResponse.json()
+        : null;
 
     if (!data.list || !data.list.length || !data.city) {
       if (result) result.innerText = t("weather.no_forecast");
       return;
     }
 
-const firstMain = (data.list[0].weather?.[0]?.main || "").toLowerCase();
-const bgUrl = weatherBackgrounds[firstMain] || defaultBackground;
+const nowMain = (currentData?.weather?.[0]?.main || data.list[0].weather?.[0]?.main || "").toLowerCase();
+const bgUrl = weatherBackgrounds[nowMain] || defaultBackground;
 
 // elmentjük, hogy nyelvváltás/route frissítés után is megmaradjon
 window.__weatherBgUrl = bgUrl;
@@ -976,6 +986,22 @@ if (window.router && typeof window.router.setBg === "function") {
     });
 
     let html = `<h3>${data.city.name}</h3>`;
+
+    if (currentData && currentData.main) {
+      const nowTemp = Math.round(currentData.main.temp);
+      const nowFeels = Math.round(currentData.main.feels_like);
+      const nowDesc =
+        t(`weather.desc.${nowMain}`) ||
+        currentData.weather?.[0]?.description ||
+        "";
+      const nowIcon = getWeatherIcon(nowMain);
+      html += `
+      <div class="forecast-item forecast-now">
+        <p>${t("weather.now_title")}</p>
+        ${nowIcon} <span class="${getTempClass(nowTemp)}">${nowTemp} °C</span>,
+        ${nowDesc}, ${t("weather.label.feels_like")}: ${nowFeels} °C
+      </div>`;
+    }
 
     if (hasStorm) {
       html += `
@@ -2613,6 +2639,8 @@ window.translations = {
     "weather.no_forecast": "Nem található előrejelzés ehhez a helyhez.",
     "weather.error_fetch": "Nem sikerült lekérni az adatokat.",
     "weather.next_hours_title": "Következő órák előrejelzése:",
+    "weather.now_title": "Most:",
+    "weather.label.feels_like": "Hőérzet",
     "weather.storm_warning":
       "⛈️ Figyelem, a következő órákban zivatar előfordulhat. Indulás előtt nézd meg az aktuális riasztásokat!",
     "weather.label.wind": "Szél",
@@ -2971,6 +2999,8 @@ window.translations = {
     "weather.no_forecast": "No forecast available for this location.",
     "weather.error_fetch": "Could not fetch weather data.",
     "weather.next_hours_title": "Forecast for the next hours:",
+    "weather.now_title": "Now:",
+    "weather.label.feels_like": "Feels like",
     "weather.storm_warning":
       "⛈️ Warning: thunderstorms possible in the next hours. Please check the latest alerts before you go!",
     "weather.label.wind": "Wind",
@@ -3325,6 +3355,8 @@ window.translations = {
     "weather.no_forecast": "Für diesen Ort wurde keine Vorhersage gefunden.",
     "weather.error_fetch": "Die Wetterdaten konnten nicht abgerufen werden.",
     "weather.next_hours_title": "Vorhersage für die nächsten Stunden:",
+    "weather.now_title": "Jetzt:",
+    "weather.label.feels_like": "Gefühlt",
     "weather.storm_warning":
       "⛈️ Achtung, in den nächsten Stunden kann es zu Gewittern kommen. Bitte prüfe vor der Abfahrt die aktuellen Warnungen!",
     "weather.label.wind": "Wind",
