@@ -989,7 +989,10 @@ if (window.router && typeof window.router.setBg === "function") {
     const limit = Math.min(3, data.list.length);
 for (let i = 0; i < limit; i++) {
   const fc = data.list[i];
-  const time = fc.dt_txt.slice(11, 16);
+  const localTime = new Date((fc.dt + (data.city?.timezone || 0)) * 1000);
+  const hh = String(localTime.getUTCHours()).padStart(2, "0");
+  const mm = String(localTime.getUTCMinutes()).padStart(2, "0");
+  const time = `${hh}:${mm}`;
   const temp = Math.round(fc.main.temp);
 
   // ⬇️ EZ A LÉNYEG: ne az API description-t használjuk
