@@ -344,7 +344,14 @@ function fillStopSelects() {
   // Település-szintű nevek (duplikátumok nélkül)
   const namesSet = new Set();
 
+  // csak azok a stop_id-k számítanak, amikhez tényleg van menetrend
+  const servedStopIds = new Set(
+    GTFS.stopTimes.map((st) => String(st.stop_id).trim())
+  );
+
   GTFS.stops.forEach((s) => {
+    if (!servedStopIds.has(String(s.stop_id).trim())) return;
+
     const name = cleanStopName(s.stop_name);
 
     if (name === "Balatonmária") return;
