@@ -385,10 +385,14 @@ function fillStopSelects() {
     GTFS.stopTimes.map((st) => String(st.stop_id).trim())
   );
 
-  GTFS.stops.forEach((s) => {
-    if (!servedStopIds.has(String(s.stop_id).trim())) return;
+  // a komp (Szántódrév-Tihanyrév) nem GTFS-es, külön komp.json szolgálja ki,
+  // ezért mindig megjelenik, akkor is, ha a GTFS-ben nincs hozzá menetrend
+  const alwaysIncluded = new Set(["Szántódrév", "Tihanyrév"]);
 
+  GTFS.stops.forEach((s) => {
     const name = cleanStopName(s.stop_name);
+
+    if (!alwaysIncluded.has(name) && !servedStopIds.has(String(s.stop_id).trim())) return;
 
     if (name === "Balatonmária") return;
     if (name) namesSet.add(name);
