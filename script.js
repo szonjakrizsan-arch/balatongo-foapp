@@ -278,6 +278,42 @@ const cleanStopName = (s) => {
     return hh * 3600 + mm * 60 + (ss || 0);
   };
 
+  // A Bahart hivatalosan közzétett, idényenként változó kompmenetrendje
+  // (Szántódrév-Tihanyrév). Forrás: bahart.hu/hu/komp és hivatalos közlemények.
+  const getFerryEndTime = (dateStr, from) => {
+    // ünnepi napokon rövidebb az üzemidő
+    if (["2026-12-17", "2026-12-24", "2026-12-31"].includes(dateStr)) {
+      return from === "Szántódrév" ? "15:00" : "15:15";
+    }
+    if (dateStr >= "2026-11-23") {
+      return from === "Szántódrév" ? "17:00" : "17:15";
+    }
+    if (dateStr >= "2026-11-02") {
+      return from === "Szántódrév" ? "18:00" : "18:15";
+    }
+    if (dateStr >= "2026-10-12") {
+      return from === "Szántódrév" ? "19:00" : "19:15";
+    }
+    if (dateStr >= "2026-06-19") {
+      return from === "Szántódrév" ? "23:30" : "23:45";
+    }
+    if (dateStr >= "2026-05-22") {
+      return from === "Szántódrév" ? "22:00" : "22:15";
+    }
+    return from === "Szántódrév" ? "19:00" : "19:15";
+  };
+
+  const getFerryInterval = (dateStr) => {
+    // nov. 2-től hétköznap óránkéntire ritkul, hétvégén/ünnepnap marad 30 perces
+    if (dateStr >= "2026-11-02") {
+      const d = new Date(`${dateStr}T12:00:00`);
+      const day = d.getDay(); // 0 = vasárnap, 6 = szombat
+      const isWeekend = day === 0 || day === 6;
+      return isWeekend ? 30 : 60;
+    }
+    return 30;
+  };
+
   const ymd = (d) => {
     const yyyy = d.getFullYear();
     const mm = String(d.getMonth() + 1).padStart(2, "0");
@@ -641,20 +677,11 @@ if (ferryRoute) {
   ferryRoute.slots.forEach((slot) => {
     if (slot.start && slot.end && slot.interval) {
       let depSec = timeToSec(`${slot.start}:00`);
-      let dynamicEnd = slot.end;
-
-if (fromName === "Szántódrév" && toName === "Tihanyrév") {
-  if (dateStr >= "2026-06-19") dynamicEnd = "23:30";
-  else if (dateStr >= "2026-05-22") dynamicEnd = "22:00";
-}
-
-if (fromName === "Tihanyrév" && toName === "Szántódrév") {
-  if (dateStr >= "2026-06-19") dynamicEnd = "23:45";
-  else if (dateStr >= "2026-05-22") dynamicEnd = "22:15";
-}
+      const dynamicEnd = getFerryEndTime(dateStr, fromName);
+      const dynamicInterval = getFerryInterval(dateStr);
 
 const endSec = timeToSec(`${dynamicEnd}:00`);
-      const intervalSec = Number(slot.interval) * 60;
+      const intervalSec = dynamicInterval * 60;
 
       while (depSec <= endSec) {
         const arrSec = depSec + Number(ferryRoute.duration) * 60;
